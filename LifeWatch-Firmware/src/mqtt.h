@@ -24,5 +24,5 @@ private:
     const char *pub_topic = PUB_TOPIC;
 
     char name[32] = "";
-
+    const char* TAG = "MQTT";
 };

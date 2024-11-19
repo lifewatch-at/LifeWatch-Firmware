@@ -1,40 +1,35 @@
 #include <Arduino.h>
+#include <esp_log.h>
 
 #include "json.h"
 #include "mqtt.h"
-#include "WiFi.h"
+#include "myWifi.h"
 
+MyWiFi myWifi;
 Telemetry tel("Raum111", WiFi.macAddress(), 12930834, 55);
 Sensor temp("Temperature", 25.4, "C");
 Sensor hum("Humidity", 44, "%");
 Device device;
 MQTT mqtt;
 
-void initWiFi() {
-	WiFi.mode(WIFI_STA);
-	WiFi.begin(WIFI_SSID, WIFI_PWD);
-	Serial.print("Connecting to WiFi ..");
-	while (WiFi.status() != WL_CONNECTED) {
-		Serial.print('.');
-		delay(1000);
-	}
-}
+const char* TAG = "main";
 
 void setup() {
-	// put your setup code here, to run once:
-
+	Serial.setDebugOutput(true);
 	Serial.begin(115200);
+	delay(5000);
 
 	device.telemetry = &tel;
 	device.add(&temp);
 	device.add(&hum);
 
-	initWiFi();
+	myWifi.init();
 	mqtt.mqttConnect();
 	mqtt.mqttSend(device);
+	ESP_LOGI(TAG, "setup done.\n");
 }
 
 void loop() {
-	// put your main code here, to run repeatedly:
-	
+	ESP_LOGI(TAG, ".");
+	delay(1000);
 }
