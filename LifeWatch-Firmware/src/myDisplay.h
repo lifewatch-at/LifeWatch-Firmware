@@ -11,38 +11,17 @@
 #include "smileys.h"
 
 #define DISPLAY_750
+//#undef  DISPLAY_750
 
-#ifndef DISPLAY_750
-class myDisplay_1330
+#define ESP32_S2
+#undef ESP32_S2
+
+class myDisplay
 {
 public:
   void init();
   void deepSleep();
-  void update_time(int hour, int min, bool partial);
-  void updateSpace_1(const char *val_space_1);
-  void updateSpace_2(const char *val_space_2);
-  void updateSpace_3(const char *name, const float wert, const float min, const float max);
-  void updateSpace_4(const char *name, const float wert, const float min, const float max);
-  void updateSpace_5(const char *name, const float wert, const float min, const float max);
-
-private:
-  uint16_t map(uint16_t x, uint16_t IN_min, uint16_t IN_max, uint16_t OUT_min, uint16_t OUT_max);
-  void printBox(bool isBlack, uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool partial);
-  
-  char _cTemp[7]  = "28.3 C";
-  char _cHum [4]  = "36%";
-  char mhTime[6]  = "12:45";
-  char CO2   [8]  = "CO2";
-  char TVOC  [5]  = "TVOC";
-  char CO    [3]  = "CO";
-};
-#endif 
-#ifdef DISPLAY_750
-class myDisplay_750
-{
-public:
-  void init();
-  void deepSleep();
+  void refresh();
   void updateTime(int hour, int min, bool partial);
   void updateSpace_1(const char *val_space_1);
   void updateSpace_2(const char *val_space_2);
@@ -61,4 +40,3 @@ private:
   char TVOC  [5]  = "TVOC";
   char CO    [3]  = "CO";
 };
-#endif
