@@ -34,8 +34,6 @@ void myDisplay::init()
   pinMode(5, OUTPUT);
 #endif //ESP32_S2
 
-  Serial.print("\n\ninit() - start\n\n");
-
   display.init(115200, true, 2, false);
 
   display.setRotation(0);
@@ -132,9 +130,9 @@ void myDisplay::init()
 
   // updateSpace_1("hum:34.6%");
   // updateSpace_2("temp:23.8C");
-  // updateSpace_3("CO2",   220,  100,  250);
-  // updateSpace_4("CO",     13,   10,   20);
-  // updateSpace_5("TVOC", 1445, 1000, 2000);
+  updateSpace_3("CO2",   190,  100,  250);
+  updateSpace_4("CO",     13,   10,   20);
+  updateSpace_5("TVOC", 1445, 1000, 2000);
   // updateTime(11, 33, false);
 
   display.hibernate();
