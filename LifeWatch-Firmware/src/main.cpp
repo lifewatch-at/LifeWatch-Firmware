@@ -75,6 +75,10 @@ void loop() {
 
 	zaeler++;
 
+	Serial.print("\n\nZaeler:");
+	Serial.print(zaeler);
+	Serial.print("\n\n");
+
 	if (zaeler >= 10) { 
 		_display.refresh(); 
 		zaeler = 1;
