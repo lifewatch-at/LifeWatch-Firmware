@@ -1,32 +1,36 @@
 
 #pragma once
 
-// 3V3 sensor power
-#define S_EN_3V3 2
+// BQ25798
+#define PWR_INT 4
+#define PWR_CE  5
 
-// Battery Voltage
-#define BAT_SENS 36
+// STUSB4500
+#define USB_INT 6
 
-// RealTimeClock
-#define RTC_RST 4
-#define RTC_INT 12
+// RealTimeClock DS3231
+#define RTC_INT 7
 
-// I2C PINS
-#define I2C_SCL 33
-#define I2C_SDA 32
+// MB I2C pins
+#define MB_SCL 2
+#define MB_SDA 1
 
-// E-Paper Display 1
-#define EPD1_DIN  13
-#define EPD1_SCK  14
-#define EPD1_CS   15
-#define EPD1_DC   27
-#define EPD1_RST  26
-#define EPD1_BUSY 34
+// CB I2C pins
+#define CB_SCL 9
+#define CB_SDA 8
 
-// E-Paper Display 2
-#define EPD2_DIN  23
-#define EPD2_SCK  18
-#define EPD2_CS   26
-#define EPD2_DC   25
-#define EPD2_RST  14
-#define EPD2_BUSY 27
+// EPD
+#define EPD_DIN  11
+#define EPD_SCK  12
+#define EPD_CS   10
+#define EPD_DC   14
+#define EPD_RST  21
+#define EPD_BUSY 33
+
+// CB SPI
+#define CB_MISO 37
+#define CB_MOSI 35
+#define CB_CLK  36
+#define CB_CS   34
+#define CB_INTA 16
+#define CB_INTB 15
