@@ -6,15 +6,7 @@
 /* Fonts */
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include "Bold95.h"
-
-#include "pins.h"
 #include "smileys.h"
-
-#define DISPLAY_750
-//#undef  DISPLAY_750
-
-#define ESP32_S2
-#undef ESP32_S2
 
 class myDisplay
 {

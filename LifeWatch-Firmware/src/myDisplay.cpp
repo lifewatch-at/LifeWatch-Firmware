@@ -2,37 +2,37 @@
 
 #ifdef DISPLAY_750
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> 
-#ifdef ESP32_S2
+#ifdef ARDUINO_ESP32S2_DEV
 display(GxEPD2_750_T7(10, 14, 21, 33)); //CS, DC, RST, BUSY - ESP32-S2
-#else //ESP32_S2
+#else
 display(GxEPD2_750_T7(5, 27, 26, 25)); //CS, DC, RST, BUSY - ESP32
-#endif //ESP32_S2
+#endif
 #define CORRECTION 1
 #define COR        1
 #endif //DISPLAY_750
 
 #ifndef DISPLAY_750
 GxEPD2_BW <GxEPD2_1330_GDEM133T91, GxEPD2_1330_GDEM133T91::HEIGHT / 2>
-#ifdef ESP32_S2
+#ifdef ARDUINO_ESP32S2_DEV
 display(GxEPD2_1330_GDEM133T91(10, 14, 21, 33)); // ESP32-S2
-#else //ESP32_S2
+#else
 display(GxEPD2_1330_GDEM133T91(5, 27, 26, 25)); // ESP32
-#endif //ESP32_S2
+#endif
 #define CORRECTION 0.84705882+52
 #define COR        0.84705882
 #endif //DISPLAY_750
 
-#ifdef ESP32_S2
+#ifdef ARDUINO_ESP32S2_DEV
 SPIClass spi(HSPI);
-#endif //ESP32_S2
+#endif
 
 void myDisplay::init()
 {
-#ifdef ESP32_S2
+#ifdef ARDUINO_ESP32S2_DEV
   spi.begin(12, -1, 11, 5);
   display.init(115200, true, 10, false, spi, SPISettings(500000, MSBFIRST, SPI_MODE0));
   pinMode(5, OUTPUT);
-#endif //ESP32_S2
+#endif
 
   display.init(115200, true, 2, false);
 
