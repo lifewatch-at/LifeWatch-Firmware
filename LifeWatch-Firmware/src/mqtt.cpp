@@ -4,15 +4,46 @@
 WiFiClient esp_client;
 PubSubClient mqtt_client(esp_client);
 
+IPAddress serverip;
 
 void MQTT::mqttConnect() {
+	unsigned long lastms = millis();
+
+	ESP_LOGI(TAG, "Starting mDNS");
+	while (mdns_init()!=ESP_OK) {
+		if (millis()-lastms >= 1000) {
+			ESP_LOGE(TAG, "Timeout: failed starting mDNS client");
+		}
+	}
+	
+	ESP_LOGI(TAG, "Resolving hostname: %s", SERVER_HOSTNAME);
+	lastms = millis();
+	while (1) {
+		MDNS.queryHost(SERVER_HOSTNAME);
+		if (serverip != IPAddress(0,0,0,0)) {
+			ESP_LOGI(TAG, "Got IP: %s", serverip.toString());
+			break;
+		}
+
+		if (millis()-lastms >= MDNS_TIMEOUT) {
+			ESP_LOGE(TAG, "Timeout: failed resolving hostname");
+			return;		// no need for trying to connect to nothing
+		}
+	}
+
+	lastms = millis();
 	while (!mqtt_client.connected()) {
 		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
-		mqtt_client.setServer(MQTT_IPAD, MQTT_PORT);
+		mqtt_client.setServer(serverip, MQTT_PORT);
 		if (mqtt_client.connect(client_id, MQTT_USR, MQTT_PWD)) {
 			ESP_LOGI(TAG, "Connected to MQTT broker\n");
 		} else {
 			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d\n", mqtt_client.state());
+		}
+
+		if (millis()-lastms >= MQTT_TIMEOUT) {
+			ESP_LOGE(TAG, "Timeout: MQTT");
+			break;
 		}
 	}
 }

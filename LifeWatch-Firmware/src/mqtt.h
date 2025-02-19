@@ -5,10 +5,16 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <StreamUtils.h>
+#include <ESPmDNS.h>
 
 #include "myWifi.h"
 #include "json.h"
 #include "credentials.h"
+
+#define MDNS_TIMEOUT 1000
+#define MQTT_TIMEOUT 5000
+
+#define SERVER_HOSTNAME "LifeWatch-Server"
 
 class MQTT {
 public:
