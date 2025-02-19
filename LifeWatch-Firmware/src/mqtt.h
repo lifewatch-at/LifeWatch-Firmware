@@ -6,6 +6,7 @@
 #include <PubSubClient.h>
 #include <StreamUtils.h>
 
+#include "myWifi.h"
 #include "json.h"
 #include "credentials.h"
 
@@ -20,7 +21,7 @@ private:
     IPAddress srvip = IPAddress(*MQTT_IPAD);
     uint16_t  srvport = MQTT_PORT;
     String mac = WiFi.macAddress();
-    String client_id = "LifeWatch-" + String(mac[9]) + String(mac[10]) + String(mac[12]) + String(mac[13]) + String(mac[15]) + String(mac[16]);
+    const char *client_id = _wifi.getID();
     const char *pub_topic = PUB_TOPIC;
 
     char name[32] = "";

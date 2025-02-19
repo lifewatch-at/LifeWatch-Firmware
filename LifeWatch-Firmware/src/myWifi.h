@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "credentials.h"
-#include "config.h"
+#include "initSetup.h"
 
 #define WIFI_TIMEOUT 5000
 
@@ -28,13 +28,19 @@ public:
     void disable();
     void init();
     time_t getTime();
-private:
+    const char * getID();
+    
+    private:
     const char* TAG = "WIFI";
-
-    const char *ssid = WIFI_SSID;
-    const char *pass = WIFI_PWD;
-
+    
+    const char *ssid = "";
+    const char *pwd = "";
+    
     const char* ntpServer = NTP_SERVER;
     const long  gmtOffset_sec = GMT_OFFSET;
     const int   daylightOffset_sec = DAYLIGHT_OFFSET;
+
+	String id = "";
 };
+
+extern MyWiFi _wifi;

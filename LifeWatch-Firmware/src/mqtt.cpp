@@ -7,9 +7,9 @@ PubSubClient mqtt_client(esp_client);
 
 void MQTT::mqttConnect() {
 	while (!mqtt_client.connected()) {
-		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id.c_str());
+		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
 		mqtt_client.setServer(MQTT_IPAD, MQTT_PORT);
-		if (mqtt_client.connect(client_id.c_str(), MQTT_USR, MQTT_PWD)) {
+		if (mqtt_client.connect(client_id, MQTT_USR, MQTT_PWD)) {
 			ESP_LOGI(TAG, "Connected to MQTT broker\n");
 		} else {
 			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d\n", mqtt_client.state());

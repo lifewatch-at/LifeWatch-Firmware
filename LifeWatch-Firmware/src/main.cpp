@@ -1,29 +1,29 @@
 #include <Arduino.h>
 #include <esp_log.h>
 
-// #include "json.h"
-// #include "mqtt.h"
-// #include "myWifi.h"
-#include "myDisplay.h"
+//#include "myWifi.h"
+//#include "mqtt.h"
+//#include "myDisplay.h"
+#include "initSetup.h"
 
-// MyWiFi myWifi;
-// Telemetry tel("Raum111", WiFi.macAddress(), 12930834, 55);
-// Sensor temp("Temperature", 25.4, "C");
-// Sensor hum("Humidity", 44, "%");
-// Device device;
-// MQTT mqtt;
-
-myDisplay _display;
+//Telemetry tel("Raum111", WiFi.macAddress(), 12930834, 55);
+//Sensor temp("Temperature", 25.4, "C");
+//Sensor hum("Humidity", 44, "%");
+//Device device;
+//MQTT mqtt;
+//myDisplay _display;
 
 const char* TAG = "main";
 
 void setup() {
 	Serial.setDebugOutput(true);
 	Serial.begin(115200);
-	delay(1000);
+	delay(2000);
 	ESP_LOGI(TAG, "setup started.\n");
+	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
 
-	_display.init();
+	_setup.initSetup();
+//	_display.init();
 
 	// device.telemetry = &tel;
 	// device.add(&temp);
@@ -38,5 +38,6 @@ void setup() {
 
 void loop() {
 	ESP_LOGI(TAG, ".");
-	delay(1000);
+
+	delay(5000);
 }

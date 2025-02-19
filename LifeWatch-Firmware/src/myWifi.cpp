@@ -2,119 +2,136 @@
 #include "myWiFi.h"
 
 bool MyWiFi::checkCfg() {
-    uint32_t x = 0;
-    uint32_t *p = (uint32_t *)cfgbuf.mac;
-    for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) x += p[i];
-    ESP_LOGI(TAG, "RTC mem read: chk=%x x=%x ip=%08x mode=%d %s\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode,x==0?"OK":"FAIL");
-    if (x == 0 && cfgbuf.ip != 0) return true;
-    p = (uint32_t *)cfgbuf.mac;
-    for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) Serial.printf(" %08x", p[i]);
-    Serial.printf("\n");
-    // bad checksum, init data
-    for (uint32_t i = 0; i < 6; i++) cfgbuf.mac[i] = 0xff;
-    cfgbuf.mode = 0; // chk err, reconfig
-    cfgbuf.chl = 0;
-    cfgbuf.ip = IPAddress(0, 0, 0, 0);
-    cfgbuf.gw = IPAddress(0, 0, 0, 0);
-    cfgbuf.msk = IPAddress(255, 255, 255, 0);
-    cfgbuf.dns = IPAddress(0, 0, 0, 0);
-    cfgbuf.seq = 100;
-    return false;
+	uint32_t x = 0;
+	uint32_t *p = (uint32_t *)cfgbuf.mac;
+	for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) x += p[i];
+	ESP_LOGI(TAG, "RTC mem read: chk=%x x=%x ip=%08x mode=%d %s\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode,x==0?"OK":"FAIL");
+	if (x == 0 && cfgbuf.ip != 0) return true;
+	p = (uint32_t *)cfgbuf.mac;
+	for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) Serial.printf(" %08x", p[i]);
+	Serial.printf("\n");
+	// bad checksum, init data
+	for (uint32_t i = 0; i < 6; i++) cfgbuf.mac[i] = 0xff;
+	cfgbuf.mode = 0; // chk err, reconfig
+	cfgbuf.chl = 0;
+	cfgbuf.ip = IPAddress(0, 0, 0, 0);
+	cfgbuf.gw = IPAddress(0, 0, 0, 0);
+	cfgbuf.msk = IPAddress(255, 255, 255, 0);
+	cfgbuf.dns = IPAddress(0, 0, 0, 0);
+	cfgbuf.seq = 100;
+	return false;
 }
 
 void MyWiFi::writecfg(void) {
-    // save new info
-    uint8_t *bssid = WiFi.BSSID();
-    for (int i = 0; i < sizeof(cfgbuf.mac); i++) cfgbuf.mac[i] = bssid[i];
-    cfgbuf.chl = WiFi.channel();
-    cfgbuf.ip = WiFi.localIP();
-    cfgbuf.gw = WiFi.gatewayIP();
-    cfgbuf.msk = WiFi.subnetMask();
-    cfgbuf.dns = WiFi.dnsIP();
-    // recalculate checksum
-    uint32_t x = 0;
-    uint32_t *p = (uint32_t *)cfgbuf.mac;
-    for (uint32_t i = 0; i < sizeof(cfgbuf)/4-1; i++) x += p[i];
-    cfgbuf.chk = -x;
-    ESP_LOGI(TAG, "RTC mem write: chk=%x x=%x ip=%08x mode=%d\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode);
+	// save new info
+	uint8_t *bssid = WiFi.BSSID();
+	for (int i = 0; i < sizeof(cfgbuf.mac); i++) cfgbuf.mac[i] = bssid[i];
+	cfgbuf.chl = WiFi.channel();
+	cfgbuf.ip = WiFi.localIP();
+	cfgbuf.gw = WiFi.gatewayIP();
+	cfgbuf.msk = WiFi.subnetMask();
+	cfgbuf.dns = WiFi.dnsIP();
+	// recalculate checksum
+	uint32_t x = 0;
+	uint32_t *p = (uint32_t *)cfgbuf.mac;
+	for (uint32_t i = 0; i < sizeof(cfgbuf)/4-1; i++) x += p[i];
+	cfgbuf.chk = -x;
+	ESP_LOGI(TAG, "RTC mem write: chk=%x x=%x ip=%08x mode=%d\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode);
 }
 
 void MyWiFi::init() {
-    // Read config from NVRAM
+	// Read config from NVRAM
 #ifdef FORCE_MODE
-    if (checkCfg()) cfgbuf.mode = FORCE_MODE; // can only force if we got saved info
+	if (checkCfg()) cfgbuf.mode = FORCE_MODE; // can only force if we got saved info
 #else
-    checkCfg();
+	checkCfg();
 #endif
 
-    // Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
-    if (WiFi.getMode() != WIFI_OFF) {
-        ESP_LOGW(TAG, "Wifi wasn't off!\n");
-        WiFi.persistent(true);
-        WiFi.mode(WIFI_OFF);
-    }
+	// Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
+	if (WiFi.getMode() != WIFI_OFF) {
+		ESP_LOGW(TAG, "Wifi wasn't off!\n");
+		WiFi.persistent(true);
+		WiFi.mode(WIFI_OFF);
+	}
 
-    // Init Wifi in STA mode and connect
-    WiFi.persistent(false);
-    WiFi.mode(WIFI_STA);
-    int m = cfgbuf.mode;
-    bool ok;
-    switch (cfgbuf.mode) {
-    case 0:
-        ok = WiFi.begin(ssid, pass);
-        break;
-    case 1:
-        ok = WiFi.begin(ssid, pass, cfgbuf.chl, cfgbuf.mac);
-        break;
-    case 2:
-        ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
-        if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
-        ok = WiFi.begin(ssid, pass);
-        break;
-    default:
-        ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
-        if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
-        ok = WiFi.begin(ssid, pass, cfgbuf.chl, cfgbuf.mac);
-        //printf("BSSID: %x:%x:%x:%x:%x:%x\n", cfgbuf.mac[0], cfgbuf.mac[1], cfgbuf.mac[2],
-        //    cfgbuf.mac[3], cfgbuf.mac[4], cfgbuf.mac[5]);
-        cfgbuf.mode = -1;
-        break;
-    }
-    if (!ok) {
-        ESP_LOGE(TAG, "*** Wifi.begin failed, mode=%d\n", m);
-    }
+	// Init Wifi in STA mode and connect
+	WiFi.persistent(false);
+	WiFi.mode(WIFI_STA);
+	int m = cfgbuf.mode;
+	bool ok;
 
-    unsigned long lastms = millis();
-    while (1) {
-        if (WiFi.status() == WL_CONNECTED) {
-            uint32_t wifiConnMs = millis();
-            ESP_LOGI(TAG, "Wifi successfully connected in %dms\n", wifiConnMs);
-            writecfg();
-            break;
-        }
-        else {
-            if (millis()-lastms >= WIFI_TIMEOUT) {
-                ESP_LOGE(TAG, "Timeout: couldn't connect to Wifi after %dms\n", WIFI_TIMEOUT);
-                break;
-            }
-            delay(1);
-        }
-    }
+	ssid = _setup.getWiFiSSID().c_str();
+	pwd = _setup.getWiFiPWD().c_str();
+
+	switch (cfgbuf.mode) {
+	case 0:
+		ok = WiFi.begin(ssid, pwd);
+		break;
+	case 1:
+		ok = WiFi.begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
+		break;
+	case 2:
+		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
+		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
+		ok = WiFi.begin(ssid, pwd);
+		break;
+	default:
+		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
+		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
+		ok = WiFi.begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
+		cfgbuf.mode = -1;
+		break;
+	}
+	if (!ok) {
+		ESP_LOGE(TAG, "*** Wifi.begin failed, mode=%d\n", m);
+	}
+
+	unsigned long lastms = millis();
+	while (1) {
+		if (WiFi.status() == WL_CONNECTED) {
+			uint32_t wifiConnMs = millis();
+			ESP_LOGI(TAG, "Wifi successfully connected in %dms\n", wifiConnMs);
+			writecfg();
+			break;
+		}
+		else {
+			if (millis()-lastms >= WIFI_TIMEOUT) {
+				ESP_LOGE(TAG, "Timeout: couldn't connect to Wifi after %dms\n", WIFI_TIMEOUT);
+				_setup.initSetup();
+				break;
+			}
+			delay(1);
+		}
+	}
 }
 
 void MyWiFi::disable() {
-    WiFi.mode(WIFI_OFF);
+	WiFi.mode(WIFI_OFF);
 }
 
 time_t MyWiFi::getTime() {
-    time_t now;
-    struct tm timeinfo;
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-    if(!getLocalTime(&timeinfo)) {
-        ESP_LOGW(TAG, "Failed to obtain time");
-        return(0);
-    }
+	time_t now;
+	struct tm timeinfo;
+	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+	if(!getLocalTime(&timeinfo)) {
+		ESP_LOGW(TAG, "Failed to obtain time");
+		return(0);
+	}
 
-    time(&now);
-    return now;
+	time(&now);
+	return now;
 }
+
+const char * MyWiFi::getID() {
+	unsigned char mac_base[6] = {0};
+
+	if (esp_efuse_mac_get_default(mac_base) == ESP_OK) {
+		char buffer[17];  // 10 characters for title + 3*2 characters for hex + 1 character for null terminator
+		sprintf(buffer, "LifeWatch_%02X%02X%02X", mac_base[3], mac_base[4], mac_base[5]);
+		id = buffer;
+	}
+
+	return id.c_str();
+}
+
+MyWiFi _wifi;
