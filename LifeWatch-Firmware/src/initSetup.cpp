@@ -8,148 +8,151 @@
 
 AsyncWebServer server(80);
 
-const char* TAG = "initSetup";
+const char* PARAMS[] {
+	PARAM_WIFI_SSID,
+	PARAM_WIFI_PWD,
+	PARAM_MQTT_USER,
+	PARAM_MQTT_PWD,
+	PARAM_TZ_OFFSET,
+	PARAM_NAME
+};
 
-const char* PARAM_WIFI_SSID = "inputWifiSSID";
-const char* PARAM_WIFI_PWD = "inputWifiPWD";
-
-const char* PARAM_MQTT_USER = "inputMQTTuser";
-const char* PARAM_MQTT_PWD = "inputMQTTpwd";
-
-const char* PARAM_TZ_OFFSET = "inputTZ";
-
-// TODO: add mdns hostname resolution for MQTT server ip
+const char* TAGS = "initSetup";
+const int nrofParams = sizeof(PARAMS) / sizeof(PARAMS[0]);
 
 void notFound(AsyncWebServerRequest *request) {
   	request->send(404, "text/plain", "Not found");
 }
 
 String readFile(fs::FS &fs, const char * path){
-	ESP_LOGV(TAG, "Reading file: %s\r", path);
+	ESP_LOGV(TAGS, "Reading file: %s\r", path);
 	File file = fs.open(path, "r");
 	if(!file || file.isDirectory()){
-		ESP_LOGW(TAG, "- empty file or failed to open file");
+		ESP_LOGW(TAGS, "- empty file or failed to open file");
 		return String();
 	}
-	ESP_LOGV(TAG, "- read from file:");
+	ESP_LOGV(TAGS, "- read from file:");
 	String fileContent;
 	while(file.available()){
 		fileContent+=String((char)file.read());
 	}
 	file.close();
-	ESP_LOGV(TAG, "%s\n", fileContent);
+	ESP_LOGV(TAGS, "%s\n", fileContent);
 	return fileContent;
 }
 
 void writeFile(fs::FS &fs, const char * path, const char * message){
-	ESP_LOGI(TAG, "Writing file: %s\r", path);
+	ESP_LOGI(TAGS, "Writing file: %s\r", path);
 	File file = fs.open(path, "w");
 	if(!file){
-		ESP_LOGW(TAG, "- failed to open file for writing");
+		ESP_LOGW(TAGS, "- failed to open file for writing");
 		return;
 	}
 	if(file.print(message)){
-		ESP_LOGI(TAG, "- file written");
+		ESP_LOGI(TAGS, "- file written");
 	} else {
-		ESP_LOGE(TAG, "- write failed");
+		ESP_LOGE(TAGS, "- write failed");
 	}
 	file.close();
 }
 
 // Replaces placeholder with stored values
 String processor(const String& var){
-	if(var == "inputWifiSSID"){
-		return readFile(LittleFS, "/inputWifiSSID.txt");
+	JsonDocument doc;
+	deserializeJson(doc, readFile(LittleFS, "/credentials.json")); 
+
+	for (int i=0;i<6;i++) {
+		if (var == PARAMS[i]) {
+			return doc[PARAMS[i]];
+		}
 	}
-	if(var == "inputMQTTuser"){
-		return readFile(LittleFS, "/inputMQTTuser.txt");
-	}
-	if(var == "inputTZ"){
-		return readFile(LittleFS, "/inputTZ.txt");
-	}	
+
 	return String();
 }
 
 void Setup::initSetup() {
+	volatile bool done = false;
+	
 	// Initialize LittleFS
 	if(!LittleFS.begin(true)){
-		ESP_LOGE(TAG, "An Error has occurred while mounting LittleFS");
+		ESP_LOGE(TAGS, "An Error has occurred while mounting LittleFS");
 		return;
 	}
-
-	// Start WiFi AP
-  	WiFi.mode(WIFI_AP);
-  	WiFi.softAP(_wifi.getID(), password);
-	WiFi.begin();
-
 	
-  	// Send web page with input fields to client
-  	server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+	// Start WiFi AP
+	WiFi.mode(WIFI_OFF);
+	WiFi.mode(WIFI_AP);
+	WiFi.softAP(_wifi.getID(), password);
+	WiFi.begin();
+	
+	
+	// Send web page with input fields to client
+	server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
 		request->send(200, "text/html", index_html, processor);
-  	});
-
-  	server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+	});
+	
+	// parse values of input fields and save them to a JSON
+	server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
 		String inputMessage;
+		JsonDocument doc;
+		deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
 
-		// WiFi creds
-		if (request->hasParam(PARAM_WIFI_SSID)) {
-			inputMessage = request->getParam(PARAM_WIFI_SSID)->value();
-			writeFile(LittleFS, "/inputWifiSSID.txt", inputMessage.c_str());
+		for (int i=0;i<nrofParams;i++) {
+			if (request->hasParam(PARAMS[i])) {
+				inputMessage = request->getParam(PARAMS[i])->value();
+				if (inputMessage != "") {
+					doc[PARAMS[i]] = inputMessage;
+				}
+				else {
+					ESP_LOGV(TAGS, "empty line. skipping...");
+				}
+			}
 		}
-		if (request->hasParam(PARAM_WIFI_PWD)) {
-			inputMessage = request->getParam(PARAM_WIFI_PWD)->value();
-			writeFile(LittleFS, "/inputWifiPWD.txt", inputMessage.c_str());
-		}
+		
+		char buffer[200];
+		serializeJson(doc,buffer);
+		ESP_LOGI(TAGS, "JSON: %s", buffer);
+		writeFile(LittleFS, "/credentials.json", buffer);
 
-		// MQTT creds
-		if (request->hasParam(PARAM_MQTT_USER)) {
-			inputMessage = request->getParam(PARAM_MQTT_USER)->value();
-			writeFile(LittleFS, "/inputMQTTuser.txt", inputMessage.c_str());
-		}
-		if (request->hasParam(PARAM_MQTT_PWD)) {
-			inputMessage = request->getParam(PARAM_MQTT_PWD)->value();
-			writeFile(LittleFS, "/inputMQTTpwd.txt", inputMessage.c_str());
-		}
-
-		// TZ
-		if (request->hasParam(PARAM_TZ_OFFSET)) {
-			inputMessage = request->getParam(PARAM_TZ_OFFSET)->value();
-			writeFile(LittleFS, "/inputTZ.txt", inputMessage.c_str());
-		}
-
-		else {
-			inputMessage = "No message sent";
-		}
-
-		ESP_LOGV(TAG, "%s\n", inputMessage);
+		ESP_LOGV(TAGS, "%s\n", inputMessage);
 		request->send(200, "text/text", inputMessage);
 	});
 
-	server.on("/done", HTTP_GET, [] (AsyncWebServerRequest *request) {
-		ESP_LOGI(TAG, "Received setup done...");
-		delay(100);
+	// finish initial setup routine on pressing "Done" button
+	server.on("/done", HTTP_GET, [&done] (AsyncWebServerRequest *request) {
+		ESP_LOGI(TAGS, "Received setup done...");
 		server.end();
 		WiFi.mode(WIFI_OFF);
+		done = true;
+		_wifi.init();
+	});
+
+	server.on("/reset", HTTP_GET, [] (AsyncWebServerRequest *request) {
+		ESP_LOGI(TAGS, "Received reset input...");
 	});
 
 	server.onNotFound(notFound);
 	server.begin();
+
+	while (!done);
 }
 
-String Setup::getWiFiSSID() {
-	return readFile(LittleFS, "/inputWifiSSID.txt");
-}
-
-String Setup::getWiFiPWD() {
-	return readFile(LittleFS, "/inputWifiPWD.txt");
+String Setup::getParam(String param) {
+	JsonDocument doc;
+	deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
+	return doc[param];
 }
 
 void Setup::printSetup() {
-	ESP_LOGI(TAG, "WiFi SSID: %s", readFile(LittleFS, "/inputWifiSSID.txt"));
-	ESP_LOGI(TAG, "WiFi Password: %s", readFile(LittleFS, "/inputWifiPWD.txt"));
-	ESP_LOGI(TAG, "MQTT User: %s", readFile(LittleFS, "/inputMQTTuser.txt"));
-	ESP_LOGI(TAG, "MQTT Password: %s", readFile(LittleFS, "/inputMQTTpwd.txt"));
-	ESP_LOGI(TAG, "Timezone: %d", readFile(LittleFS, "/inputTZ.txt").toInt());
+	JsonDocument doc;
+	deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
+
+	ESP_LOGI(TAGS, "LifeWatch Name: %s", doc["inputName"]);
+	ESP_LOGI(TAGS, "WiFi SSID: %s", doc["inputWifiSSID"]);
+	ESP_LOGI(TAGS, "WiFi Password: %s", doc["inputWifiPWD"]);
+	ESP_LOGI(TAGS, "MQTT User: %s", doc["inputMQTTuser"]);
+	ESP_LOGI(TAGS, "MQTT Password: %s", doc["inputMQTTpwd"]);
+	ESP_LOGI(TAGS, "Timezone: %d", doc["inputTZ"]);
 }
 
 Setup _setup;

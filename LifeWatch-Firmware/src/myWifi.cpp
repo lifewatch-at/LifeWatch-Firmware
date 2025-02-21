@@ -60,8 +60,8 @@ void MyWiFi::init() {
 	int m = cfgbuf.mode;
 	bool ok;
 
-	ssid = _setup.getWiFiSSID().c_str();
-	pwd = _setup.getWiFiPWD().c_str();
+	ssid = _setup.getParam("inputWifiSSID").c_str();
+	pwd = _setup.getParam("inputWifiPWD").c_str();
 
 	switch (cfgbuf.mode) {
 	case 0:
