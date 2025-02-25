@@ -4,8 +4,6 @@
 WiFiClient esp_client;
 PubSubClient mqtt_client(esp_client);
 
-IPAddress serverip;
-
 void MQTT::mqttConnect() {
 	unsigned long lastms = millis();
 
@@ -16,12 +14,12 @@ void MQTT::mqttConnect() {
 		}
 	}
 	
-	ESP_LOGI(TAG, "Resolving hostname: %s", SERVER_HOSTNAME);
+	ESP_LOGI(TAG, "Resolving hostname: %s", MQTT_HOST);
 	lastms = millis();
 	while (1) {
-		MDNS.queryHost(SERVER_HOSTNAME);
-		if (serverip != IPAddress(0,0,0,0)) {
-			ESP_LOGI(TAG, "Got IP: %s", serverip.toString());
+		MDNS.queryHost(MQTT_HOST);
+		if (srvip != IPAddress(0,0,0,0)) {
+			ESP_LOGI(TAG, "Got IP: %s", srvip.toString());
 			break;
 		}
 
@@ -31,11 +29,15 @@ void MQTT::mqttConnect() {
 		}
 	}
 
+	mqtt_user = _setup.getParam("inputMQTTuser").c_str();
+	mqtt_pwd = _setup.getParam("inputMQTTpwd").c_str();
+
 	lastms = millis();
+
 	while (!mqtt_client.connected()) {
 		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
-		mqtt_client.setServer(serverip, MQTT_PORT);
-		if (mqtt_client.connect(client_id, MQTT_USR, MQTT_PWD)) {
+		mqtt_client.setServer(srvip, MQTT_PORT);
+		if (mqtt_client.connect(client_id, mqtt_user, mqtt_pwd)) {
 			ESP_LOGI(TAG, "Connected to MQTT broker\n");
 		} else {
 			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d\n", mqtt_client.state());

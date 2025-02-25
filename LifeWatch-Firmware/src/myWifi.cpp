@@ -112,7 +112,27 @@ void MyWiFi::disable() {
 time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
-	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+	if (!esp_sntp_enabled()) {
+		esp_sntp_setoperatingmode(ESP_SNTP_OPMODE_POLL);
+		sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
+		esp_sntp_setservername(0, NTP_SERVER_0);
+		esp_sntp_setservername(1, NTP_SERVER_1);
+		esp_sntp_setservername(2, NTP_SERVER_2);
+		esp_sntp_init();
+	}
+
+	setenv("TZ", _setup.getParam("inputTZ").c_str(), 1);
+	tzset();
+
+	unsigned long lastms = millis();
+	while (sntp_get_sync_status() != SNTP_SYNC_STATUS_COMPLETED) {
+		if (millis()-lastms >= SNTP_TIMEOUT) {
+			ESP_LOGE(TAG, "TIMEOUT: could not sync time...");
+			break;
+		}
+	}
+
 	if(!getLocalTime(&timeinfo)) {
 		ESP_LOGW(TAG, "Failed to obtain time");
 		return(0);

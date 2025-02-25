@@ -11,71 +11,12 @@
 
 #define SETUP_PWD "LifeWatch"
 
+#define PARAM_NAME		"inputName"
 #define PARAM_WIFI_SSID	"inputWifiSSID"
 #define PARAM_WIFI_PWD	"inputWifiPWD"
 #define PARAM_MQTT_USER	"inputMQTTuser"
 #define PARAM_MQTT_PWD	"inputMQTTpwd"
-#define PARAM_TZ_OFFSET	"inputTZ"
-#define PARAM_NAME		"inputName"
-
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LifeWatch Config</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        form { display: inline-block; }
-        .form-group { display: flex; align-items: center; margin-bottom: 10px; }
-        .form-group label { width: 150px; text-align: right; margin-right: 10px; }
-        .form-group input { flex: 1; padding: 5px; }
-        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; }
-        .btn-reset { background: #dc3545; }
-    </style>
-    <script>
-        function submitMessage(message) {
-            alert(message);
-            setTimeout(() => location.reload(), 500);
-        }
-    </script>
-</head>
-<body>
-    <h2>LifeWatch Config</h2>
-    <form action="/get" target="hidden-form">
-        <div class="form-group">
-            <label for="inputName">LifeWatch Name:</label>
-            <input type="text" id="inputName" name="inputName" placeholder="%inputName%">
-        </div>
-        <div class="form-group">
-            <label for="inputWifiSSID">WiFi SSID:</label>
-            <input type="text" id="inputWifiSSID" name="inputWifiSSID" placeholder="%inputWifiSSID%">
-        </div>
-        <div class="form-group">
-            <label for="inputWifiPWD">WiFi Password:</label>
-            <input type="text" id="inputWifiPWD" name="inputWifiPWD">
-        </div>
-        <div class="form-group">
-            <label for="inputMQTTuser">MQTT User:</label>
-            <input type="text" id="inputMQTTuser" name="inputMQTTuser" placeholder="%inputMQTTuser%">
-        </div>
-        <div class="form-group">
-            <label for="inputMQTTpwd">MQTT Password:</label>
-            <input type="text" id="inputMQTTpwd" name="inputMQTTpwd">
-        </div>
-        <div class="form-group">
-            <label for="inputTZ">Timezone:</label>
-            <input type="number" id="inputTZ" name="inputTZ" placeholder="current: %inputTZ%">
-        </div>
-        <div class="form-group">
-            <input type="submit" class="btn" value="Save" onclick="submitMessage('Saved to LifeWatch!')">
-            <input type="submit" class="btn" value="Done" onclick="submitMessage('Finished Setup. LifeWatch will connect to WiFi shortly...')" formaction="/done">
-            <input type="submit" class="btn btn-reset" value="Reset" onclick="submitMessage('Resetting LifeWatch...')" formaction="/reset">
-        </div>
-    </form>
-    <iframe style="display:none" name="hidden-form"></iframe>
-</body>
-</html>)rawliteral";
+#define PARAM_TZ_OFFSET	"inputTZ"       // https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
 
 class Setup {
 public:

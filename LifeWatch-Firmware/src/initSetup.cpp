@@ -1,6 +1,6 @@
 /*********
   Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/esp32-esp8266-input-data-html-form/
+  Based on https://RandomNerdTutorials.com/esp32-esp8266-input-data-html-form/
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 *********/
@@ -83,12 +83,11 @@ void Setup::initSetup() {
 	WiFi.mode(WIFI_OFF);
 	WiFi.mode(WIFI_AP);
 	WiFi.softAP(_wifi.getID(), password);
-	WiFi.begin();
 	
 	
 	// Send web page with input fields to client
 	server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-		request->send(200, "text/html", index_html, processor);
+		request->send(200, "text/html", readFile(LittleFS, "/setup.html"), processor);
 	});
 	
 	// parse values of input fields and save them to a JSON
@@ -152,7 +151,7 @@ void Setup::printSetup() {
 	ESP_LOGI(TAGS, "WiFi Password: %s", doc["inputWifiPWD"]);
 	ESP_LOGI(TAGS, "MQTT User: %s", doc["inputMQTTuser"]);
 	ESP_LOGI(TAGS, "MQTT Password: %s", doc["inputMQTTpwd"]);
-	ESP_LOGI(TAGS, "Timezone: %d", doc["inputTZ"]);
+	ESP_LOGI(TAGS, "Timezone: %s", doc["inputTZ"]);
 }
 
 Setup _setup;
