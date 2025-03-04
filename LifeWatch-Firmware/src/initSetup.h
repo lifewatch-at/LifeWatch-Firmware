@@ -20,9 +20,9 @@
 
 class Setup {
 public:
-    void initSetup();
+    void init();
     String getParam(String param);
-    void printSetup();
+    void print();
 private:
     const char* password = SETUP_PWD;
 };

@@ -7,7 +7,7 @@
 
 #include "initSetup.h"
 
-#define WIFI_TIMEOUT 5000
+#define WIFI_TIMEOUT 10000
 #define SNTP_TIMEOUT 5000
 
 #define NTP_SERVER_0	"pool.ntp.org"
@@ -31,16 +31,15 @@ public:
 	bool checkCfg();
 	void writecfg(void);
 	void disable();
-	void init();
+	bool init();
 	time_t getTime();
 	const char * getID();
 	
 	private:
 	const char* TAG = "WIFI";
 	
-	const char *ssid = "";
-	const char *pwd = "";
-
+	String ssid = "";
+	String pwd = "";
 	String id = "";
 };
 

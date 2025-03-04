@@ -33,8 +33,8 @@ private:
 	const char *client_id = _wifi.getID();
 	const char *pub_topic = PUB_TOPIC;
 
-	const char* mqtt_user;
-	const char* mqtt_pwd;
+	String mqtt_user;
+	String mqtt_pwd;
 
 	char name[32] = "";
 	const char* TAG = "MQTT";

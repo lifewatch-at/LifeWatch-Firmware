@@ -20,12 +20,24 @@ const char* PARAMS[] {
 const char* TAGS = "initSetup";
 const int nrofParams = sizeof(PARAMS) / sizeof(PARAMS[0]);
 
+bool fsinit() {
+	if (!LittleFS.begin(true)){
+		ESP_LOGE(TAGS, "An Error has occurred while mounting LittleFS");
+		return false;
+	}
+	return true;
+}
+
 void notFound(AsyncWebServerRequest *request) {
   	request->send(404, "text/plain", "Not found");
 }
 
 String readFile(fs::FS &fs, const char * path){
-	ESP_LOGV(TAGS, "Reading file: %s\r", path);
+	if (!fsinit()) {
+		return String();
+	}
+
+	ESP_LOGI(TAGS, "Reading file: %s\r", path);
 	File file = fs.open(path, "r");
 	if(!file || file.isDirectory()){
 		ESP_LOGW(TAGS, "- empty file or failed to open file");
@@ -45,7 +57,7 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
 	ESP_LOGI(TAGS, "Writing file: %s\r", path);
 	File file = fs.open(path, "w");
 	if(!file){
-		ESP_LOGW(TAGS, "- failed to open file for writing");
+		ESP_LOGE(TAGS, "- failed to open file for writing");
 		return;
 	}
 	if(file.print(message)){
@@ -61,7 +73,7 @@ String processor(const String& var){
 	JsonDocument doc;
 	deserializeJson(doc, readFile(LittleFS, "/credentials.json")); 
 
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<nrofParams;i++) {
 		if (var == PARAMS[i]) {
 			return doc[PARAMS[i]];
 		}
@@ -70,12 +82,12 @@ String processor(const String& var){
 	return String();
 }
 
-void Setup::initSetup() {
+void Setup::init() {
 	volatile bool done = false;
 	
 	// Initialize LittleFS
-	if(!LittleFS.begin(true)){
-		ESP_LOGE(TAGS, "An Error has occurred while mounting LittleFS");
+	if (!fsinit()) {
+		ESP_LOGE(TAGS, "ERROR: setup break");
 		return;
 	}
 	
@@ -120,10 +132,7 @@ void Setup::initSetup() {
 	// finish initial setup routine on pressing "Done" button
 	server.on("/done", HTTP_GET, [&done] (AsyncWebServerRequest *request) {
 		ESP_LOGI(TAGS, "Received setup done...");
-		server.end();
-		WiFi.mode(WIFI_OFF);
 		done = true;
-		_wifi.init();
 	});
 
 	server.on("/reset", HTTP_GET, [] (AsyncWebServerRequest *request) {
@@ -133,7 +142,18 @@ void Setup::initSetup() {
 	server.onNotFound(notFound);
 	server.begin();
 
-	while (!done);
+	unsigned long lastms = millis();
+	while (1) {
+		if (millis()-lastms >= 1000) {
+			ESP_LOGI(TAGS, "setup loop");
+			lastms = millis();
+		}
+		if (done) {
+			server.end();
+			WiFi.mode(WIFI_OFF);
+			break;
+		}
+	}
 }
 
 String Setup::getParam(String param) {
@@ -142,16 +162,8 @@ String Setup::getParam(String param) {
 	return doc[param];
 }
 
-void Setup::printSetup() {
-	JsonDocument doc;
-	deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
-
-	ESP_LOGI(TAGS, "LifeWatch Name: %s", doc["inputName"]);
-	ESP_LOGI(TAGS, "WiFi SSID: %s", doc["inputWifiSSID"]);
-	ESP_LOGI(TAGS, "WiFi Password: %s", doc["inputWifiPWD"]);
-	ESP_LOGI(TAGS, "MQTT User: %s", doc["inputMQTTuser"]);
-	ESP_LOGI(TAGS, "MQTT Password: %s", doc["inputMQTTpwd"]);
-	ESP_LOGI(TAGS, "Timezone: %s", doc["inputTZ"]);
+void Setup::print() {
+	ESP_LOGI(TAGS, "credentials: %s", readFile(LittleFS, "/credentials.json").c_str());
 }
 
 Setup _setup;

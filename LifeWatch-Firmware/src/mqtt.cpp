@@ -29,15 +29,15 @@ void MQTT::mqttConnect() {
 		}
 	}
 
-	mqtt_user = _setup.getParam("inputMQTTuser").c_str();
-	mqtt_pwd = _setup.getParam("inputMQTTpwd").c_str();
+	mqtt_user = _setup.getParam("inputMQTTuser");
+	mqtt_pwd = _setup.getParam("inputMQTTpwd");
 
 	lastms = millis();
 
 	while (!mqtt_client.connected()) {
 		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
 		mqtt_client.setServer(srvip, MQTT_PORT);
-		if (mqtt_client.connect(client_id, mqtt_user, mqtt_pwd)) {
+		if (mqtt_client.connect(client_id, mqtt_user.c_str(), mqtt_pwd.c_str())) {
 			ESP_LOGI(TAG, "Connected to MQTT broker\n");
 		} else {
 			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d\n", mqtt_client.state());

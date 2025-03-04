@@ -39,7 +39,11 @@ void MyWiFi::writecfg(void) {
 	ESP_LOGI(TAG, "RTC mem write: chk=%x x=%x ip=%08x mode=%d\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode);
 }
 
-void MyWiFi::init() {
+/**
+ * @brief initiates wifi
+ * @return true if connected successfully
+ */
+bool MyWiFi::init() {
 	// Read config from NVRAM
 #ifdef FORCE_MODE
 	if (checkCfg()) cfgbuf.mode = FORCE_MODE; // can only force if we got saved info
@@ -60,8 +64,12 @@ void MyWiFi::init() {
 	int m = cfgbuf.mode;
 	bool ok;
 
-	ssid = _setup.getParam("inputWifiSSID").c_str();
-	pwd = _setup.getParam("inputWifiPWD").c_str();
+	ssid = _setup.getParam("inputWifiSSID");
+	pwd = _setup.getParam("inputWifiPWD");
+
+	ESP_LOGI(TAG, "Trying to connect to: %s", ssid.c_str());
+
+	WiFi.setHostname(getID());
 
 	switch (cfgbuf.mode) {
 	case 0:
@@ -92,13 +100,12 @@ void MyWiFi::init() {
 			uint32_t wifiConnMs = millis();
 			ESP_LOGI(TAG, "Wifi successfully connected in %dms\n", wifiConnMs);
 			writecfg();
-			break;
+			return true;
 		}
 		else {
 			if (millis()-lastms >= WIFI_TIMEOUT) {
 				ESP_LOGE(TAG, "Timeout: couldn't connect to Wifi after %dms\n", WIFI_TIMEOUT);
-				_setup.initSetup();
-				break;
+				return false;
 			}
 			delay(1);
 		}
