@@ -11,6 +11,7 @@ void MQTT::mqttConnect() {
 	while (mdns_init()!=ESP_OK) {
 		if (millis()-lastms >= 1000) {
 			ESP_LOGE(TAG, "Timeout: failed starting mDNS client");
+			break;
 		}
 	}
 	

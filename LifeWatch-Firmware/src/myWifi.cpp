@@ -70,9 +70,9 @@ bool MyWiFi::init() {
 	ESP_LOGI(TAG, "Trying to connect to: %s", ssid.c_str());
 
 	WiFi.setHostname(getID());
-
+	
 	switch (cfgbuf.mode) {
-	case 0:
+		case 0:
 		ok = WiFi.begin(ssid, pwd);
 		break;
 	case 1:
@@ -98,18 +98,24 @@ bool MyWiFi::init() {
 	while (1) {
 		if (WiFi.status() == WL_CONNECTED) {
 			uint32_t wifiConnMs = millis();
-			ESP_LOGI(TAG, "Wifi successfully connected in %dms\n", wifiConnMs);
+			ESP_LOGI(TAG, "Wifi successfully connected in %dms using hostname: %s", wifiConnMs, WiFi.getHostname());
 			writecfg();
-			return true;
+			break;
 		}
 		else {
 			if (millis()-lastms >= WIFI_TIMEOUT) {
-				ESP_LOGE(TAG, "Timeout: couldn't connect to Wifi after %dms\n", WIFI_TIMEOUT);
+				ESP_LOGE(TAG, "Timeout: couldn't connect to Wifi after %dms", WIFI_TIMEOUT);
 				return false;
 			}
 			delay(1);
 		}
 	}
+
+	if(MDNS.begin(getID())) {
+		ESP_LOGI(TAG, "Successfully started mDNS");
+	}
+	
+	return true;
 }
 
 void MyWiFi::disable() {
@@ -154,7 +160,7 @@ const char * MyWiFi::getID() {
 
 	if (esp_efuse_mac_get_default(mac_base) == ESP_OK) {
 		char buffer[17];  // 10 characters for title + 3*2 characters for hex + 1 character for null terminator
-		sprintf(buffer, "LifeWatch_%02X%02X%02X", mac_base[3], mac_base[4], mac_base[5]);
+		sprintf(buffer, "LifeWatch-%02X%02X%02X", mac_base[3], mac_base[4], mac_base[5]);
 		id = buffer;
 	}
 

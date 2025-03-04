@@ -3,7 +3,8 @@
 
 #include <WiFi.h>
 #include <time.h>
-#include "esp_sntp.h"
+#include <esp_sntp.h>
+#include <ESPmDNS.h>
 
 #include "initSetup.h"
 
