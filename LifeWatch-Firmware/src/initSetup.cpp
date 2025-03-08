@@ -92,9 +92,13 @@ void Setup::init() {
 	}
 	
 	// Start WiFi AP
+	const char* id = _wifi.getID();
+	ESP_LOGI(TAGS, "Starting AP using SSID: %s", id);
 	WiFi.mode(WIFI_OFF);
 	WiFi.mode(WIFI_AP);
-	WiFi.softAP(_wifi.getID(), password);
+	WiFi.softAP(id, password);
+	delay(100);
+	WiFi.softAPConfig(apip, apip, IPAddress(255,255,255,0));
 	
 	
 	// Send web page with input fields to client
@@ -141,11 +145,12 @@ void Setup::init() {
 
 	server.onNotFound(notFound);
 	server.begin();
+	ESP_LOGI(TAGS, "Webserver started on %s", WiFi.softAPIP().toString());
 
 	unsigned long lastms = millis();
 	while (1) {
-		if (millis()-lastms >= 1000) {
-			ESP_LOGI(TAGS, "setup loop");
+		if (millis()-lastms >= 10000) {
+			ESP_LOGD(TAGS, "setup loop");
 			lastms = millis();
 		}
 		if (done) {

@@ -5,7 +5,7 @@ bool MyWiFi::checkCfg() {
 	uint32_t x = 0;
 	uint32_t *p = (uint32_t *)cfgbuf.mac;
 	for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) x += p[i];
-	ESP_LOGI(TAG, "RTC mem read: chk=%x x=%x ip=%08x mode=%d %s\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode,x==0?"OK":"FAIL");
+	ESP_LOGI(TAG, "RTC mem read: chk=%x x=%x ip=%08x mode=%d %s", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode,x==0?"OK":"FAIL");
 	if (x == 0 && cfgbuf.ip != 0) return true;
 	p = (uint32_t *)cfgbuf.mac;
 	for (uint32_t i = 0; i < sizeof(cfgbuf)/4; i++) Serial.printf(" %08x", p[i]);
@@ -36,7 +36,7 @@ void MyWiFi::writecfg(void) {
 	uint32_t *p = (uint32_t *)cfgbuf.mac;
 	for (uint32_t i = 0; i < sizeof(cfgbuf)/4-1; i++) x += p[i];
 	cfgbuf.chk = -x;
-	ESP_LOGI(TAG, "RTC mem write: chk=%x x=%x ip=%08x mode=%d\n", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode);
+	ESP_LOGI(TAG, "RTC mem write: chk=%x x=%x ip=%08x mode=%d", cfgbuf.chk, x, cfgbuf.ip, cfgbuf.mode);
 }
 
 /**
@@ -53,7 +53,7 @@ bool MyWiFi::init() {
 
 	// Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
 	if (WiFi.getMode() != WIFI_OFF) {
-		ESP_LOGW(TAG, "Wifi wasn't off!\n");
+		ESP_LOGW(TAG, "Wifi wasn't off!");
 		WiFi.persistent(true);
 		WiFi.mode(WIFI_OFF);
 	}
@@ -80,18 +80,18 @@ bool MyWiFi::init() {
 		break;
 	case 2:
 		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
-		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
+		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d", m);
 		ok = WiFi.begin(ssid, pwd);
 		break;
 	default:
 		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
-		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d\n", m);
+		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d", m);
 		ok = WiFi.begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
 		cfgbuf.mode = -1;
 		break;
 	}
 	if (!ok) {
-		ESP_LOGE(TAG, "*** Wifi.begin failed, mode=%d\n", m);
+		ESP_LOGE(TAG, "*** Wifi.begin failed, mode=%d", m);
 	}
 
 	unsigned long lastms = millis();
@@ -126,17 +126,7 @@ time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
 
-	if (!esp_sntp_enabled()) {
-		esp_sntp_setoperatingmode(ESP_SNTP_OPMODE_POLL);
-		sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
-		esp_sntp_setservername(0, NTP_SERVER_0);
-		esp_sntp_setservername(1, NTP_SERVER_1);
-		esp_sntp_setservername(2, NTP_SERVER_2);
-		esp_sntp_init();
-	}
-
-	setenv("TZ", _setup.getParam("inputTZ").c_str(), 1);
-	tzset();
+	configTzTime(_setup.getParam("inputTZ").c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
 
 	unsigned long lastms = millis();
 	while (sntp_get_sync_status() != SNTP_SYNC_STATUS_COMPLETED) {
@@ -150,7 +140,6 @@ time_t MyWiFi::getTime() {
 		ESP_LOGW(TAG, "Failed to obtain time");
 		return(0);
 	}
-
 	time(&now);
 	return now;
 }

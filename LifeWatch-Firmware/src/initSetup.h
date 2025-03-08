@@ -25,6 +25,7 @@ public:
     void print();
 private:
     const char* password = SETUP_PWD;
+    IPAddress apip = IPAddress(10,0,0,1);
 };
 
 extern Setup _setup;
