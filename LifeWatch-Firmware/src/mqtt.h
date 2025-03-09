@@ -16,26 +16,26 @@
 
 #define MQTT_HOST	"LifeWatch-Server"
 #define MQTT_PORT	1883
-#define PUB_TOPIC	"LifeWatch"
-#define SUB_TOPIC	""
+#define PUB_ROOT	"LifeWatch/pub/"
+#define SUB_ROOT	"LifeWatch/sub/"
 
 class MQTT {
 public:
-	void mqttConnect();
-	void publish(const char *topic, JsonDocument doc);
-	void mqttSend(Device device);
-	void callback(char* topic, byte* payload, unsigned int length);
-
+	void connect();
+	void send(Device device);
+	void loop();
+	
+	const char* TAG = "MQTT";
+	JsonDocument response;
+	
 private:
+	void publish(const char *topic, JsonDocument doc);
+
 	IPAddress srvip;
 	uint16_t  srvport = MQTT_PORT;
-	String mac = WiFi.macAddress();
 	const char *client_id = _wifi.getID();
-	const char *pub_topic = PUB_TOPIC;
-
 	String mqtt_user;
 	String mqtt_pwd;
-
-	char name[32] = "";
-	const char* TAG = "MQTT";
 };
+
+extern MQTT _mqtt;

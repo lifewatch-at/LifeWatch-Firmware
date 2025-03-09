@@ -1,13 +1,24 @@
+// https://arduinojson.org/v6/how-to/use-arduinojson-with-pubsubclient/
 
 #include "mqtt.h"
 
 WiFiClient esp_client;
 PubSubClient mqtt_client(esp_client);
 
-void MQTT::mqttConnect() {
+volatile bool gotResponse = false;
+
+
+void callback(char* topic, byte* payload, unsigned int length) {
+	ESP_LOGI(_mqtt.TAG, "received message from topic: %s", topic);
+	deserializeJson(_mqtt.response, payload, length);
+	gotResponse = true;
+
+	// TODO: parse the received json document
+}
+
+void MQTT::connect() {
 	unsigned long lastms = millis();
 
-	ESP_LOGI(TAG, "Starting mDNS");
 	while (mdns_init()!=ESP_OK) {
 		if (millis()-lastms >= 1000) {
 			ESP_LOGE(TAG, "Timeout: failed starting mDNS client");
@@ -38,6 +49,7 @@ void MQTT::mqttConnect() {
 	while (!mqtt_client.connected()) {
 		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
 		mqtt_client.setServer(srvip, MQTT_PORT);
+		mqtt_client.setCallback(callback);
 		if (mqtt_client.connect(client_id, mqtt_user.c_str(), mqtt_pwd.c_str())) {
 			ESP_LOGI(TAG, "Connected to MQTT broker\n");
 		} else {
@@ -49,6 +61,8 @@ void MQTT::mqttConnect() {
 			break;
 		}
 	}
+
+	mqtt_client.subscribe(strcat(SUB_ROOT, client_id));
 }
 
 
@@ -65,17 +79,26 @@ void MQTT::publish(const char *pub_topic, JsonDocument doc) {
 	}
 }
 
-void MQTT::mqttSend(Device device) {
+void MQTT::send(Device device) {
 	if (mqtt_client.connected()) {
-		publish(pub_topic, device.toJSON());
+		publish(strcat(PUB_ROOT, client_id), device.toJSON());
 	}
 	else {
 		ESP_LOGW(TAG, "MQTT not connected.\n");
 	}
 }
 
-void MQTT::callback(char* topic, byte* payload, unsigned int length) {
-	JsonDocument doc;
-	deserializeJson(doc, payload, length);
-	strlcpy(name, doc["name"] | "default", sizeof(name));
+void MQTT::loop() {
+	ESP_LOGD(TAG, "Waiting for LifeWatch server response...");
+	unsigned long lastms = millis();
+	while(!gotResponse) {
+		mqtt_client.loop();
+
+		if (millis()-lastms >= MQTT_TIMEOUT) {
+			ESP_LOGW(TAG, "No response from LifeWatch server after %dms", MQTT_TIMEOUT);
+			break;
+		}
+	}
 }
+
+MQTT _mqtt;
