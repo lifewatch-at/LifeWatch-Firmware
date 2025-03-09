@@ -1,5 +1,5 @@
 
-#include "myWiFi.h"
+#include "myWifi.h"
 
 bool MyWiFi::checkCfg() {
 	uint32_t x = 0;

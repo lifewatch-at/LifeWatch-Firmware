@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <vector>
 
-#include <ArduinoJSON.h>
+#include <ArduinoJson.h>
 
 
 class Telemetry {

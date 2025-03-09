@@ -3,7 +3,7 @@
 #include <Wire.h>
 
 #include "pins.h"
-#include "myWiFi.h"
+#include "myWifi.h"
 
 #pragma once
 
