@@ -1,17 +1,8 @@
 #include <Arduino.h>
 #include <esp_log.h>
 
-// #include "json.h"
-// #include "mqtt.h"
-// #include "myWifi.h"
 #include "myDisplay.h"
 
-// MyWiFi myWifi;
-// Telemetry tel("Raum111", WiFi.macAddress(), 12930834, 55);
-// Sensor temp("Temperature", 25.4, "C");
-// Sensor hum("Humidity", 44, "%");
-// Device device;
-// MQTT mqtt;
 
 myDisplay _display;
 
@@ -24,14 +15,6 @@ void setup() {
 	ESP_LOGI(TAG, "setup started.\n");
 
 	_display.init();
-
-	// device.telemetry = &tel;
-	// device.add(&temp);
-	// device.add(&hum);
-
-	// myWifi.init();
-	// mqtt.mqttConnect();
-	// mqtt.mqttSend(device);
 
 	ESP_LOGI(TAG, "setup done.\n");
 }
