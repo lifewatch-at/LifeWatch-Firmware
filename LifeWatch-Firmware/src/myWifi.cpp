@@ -64,8 +64,8 @@ bool MyWiFi::init() {
 	int m = cfgbuf.mode;
 	bool ok;
 
-	ssid = _setup.getParam("inputWifiSSID");
-	pwd = _setup.getParam("inputWifiPWD");
+	ssid = _setup.getParam(PARAM_WIFI_SSID);
+	pwd = _setup.getParam(PARAM_WIFI_PWD);
 
 	ESP_LOGI(TAG, "Trying to connect to: %s", ssid.c_str());
 
@@ -126,7 +126,7 @@ time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
 
-	configTzTime(_setup.getParam("inputTZ").c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
+	configTzTime(_setup.getParam(PARAM_TZ_OFFSET).c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
 
 	unsigned long lastms = millis();
 	while (sntp_get_sync_status() != SNTP_SYNC_STATUS_COMPLETED) {
