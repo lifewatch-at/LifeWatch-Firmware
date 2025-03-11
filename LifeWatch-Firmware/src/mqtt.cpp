@@ -41,8 +41,8 @@ void MQTT::connect() {
 		}
 	}
 
-	mqtt_user = _setup.getParam("inputMQTTuser");
-	mqtt_pwd = _setup.getParam("inputMQTTpwd");
+	mqtt_user = _setup.getParam(PARAM_MQTT_USER);
+	mqtt_pwd = _setup.getParam(PARAM_MQTT_PWD);
 
 	lastms = millis();
 

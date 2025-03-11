@@ -12,7 +12,7 @@ JsonDocument Sensor::toJSON() {
 JsonDocument Telemetry::toJSON() {
     JsonDocument doc;
     doc["id"] = id;
-    doc["mac"] = mac;
+    doc["pretty_name"] = name;
     doc["timestamp"] = timestamp;
     doc["battery"] = bat;
     return doc;
