@@ -126,20 +126,20 @@ void myDisplay::init()
   }
   while (display.nextPage());
 
-  delay(1000);
+  // delay(1000);
 
-  updateSpace_1("hum:34.6%");
-  updateSpace_2("temp:23.8C");
-  updateSpace_3("CO2",   190,  100,  250);
-  updateSpace_4("CO",     13,   10,   20);
-  updateSpace_5("TVOC", 1445, 1000, 2000);
-  updateTime(11, 33, true);
+  // updateSpace_1("hum:34.6%");
+  // updateSpace_2("temp:23.8C");
+  // updateSpace_3("CO2",   190,  100,  250);
+  // updateSpace_4("CO",     13,   10,   20);
+  // updateSpace_5("TVOC", 1445, 1000, 2000);
+  // updateTime(11, 33, true);
 
-  BatteryWarning(true);
-  delay(5000);
-  BatteryWarning(false);
-  delay(1000);
-  display.refresh();
+  // BatteryWarning(true);
+  // delay(5000);
+  // BatteryWarning(false);
+  // delay(1000);
+  // display.refresh();
 
   display.hibernate();
 }
