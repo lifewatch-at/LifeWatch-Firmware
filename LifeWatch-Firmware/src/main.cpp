@@ -44,6 +44,16 @@ inline void rtc_loop() {
 	ESP_LOGI(TAG, "localtime: %2d:%2d", rtc.getH(), rtc.getM());
 }
 
+inline void display_setup() {
+	_display.init();
+	_display.updateEverything(rtc.getH(), rtc.getM(), 
+								"24 deg C", "45 %rH", 
+								"CO", 6, 0, 100,
+								"TVOC", 30, 0, 100,
+								"CO2", 60, 0, 100);
+	_display.deepSleep();
+}
+
 inline void gotosleep() {
 	ESP_LOGI(TAG, "going to sleep...\n");
 	wake_cnt++;
@@ -62,6 +72,7 @@ void setup() {
 	wifi_loop();
 	Wire.begin(MB_SDA, MB_SCL, 400000);
 	rtc_loop();
+	display_setup();
 	ESP_LOGI(TAG, "setup done.");
 	gotosleep();
 }
