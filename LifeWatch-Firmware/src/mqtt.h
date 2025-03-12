@@ -29,7 +29,7 @@ public:
 private:
 	IPAddress srvip;
 	uint16_t  srvport = MQTT_PORT;
-	String mac = WiFi.macAddress();
+	String mac = _wifi.macAddress();
 	const char *client_id = _wifi.getID();
 	const char *pub_topic = PUB_TOPIC;
 

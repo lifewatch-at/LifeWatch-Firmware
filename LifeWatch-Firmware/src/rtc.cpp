@@ -1,66 +1,47 @@
 
 #include "rtc.h"
 
-DS3231 myRTC(Wire);
-
 void RTC::init() {
-    ESP_LOGI(TAG, "Initialising RTC...");
-    // set Utillities
-    myRTC.enable32kHz(false);
-    myRTC.enableOscillator(false, true, 0);
-
-    // sync RTC with NTP
+    disable32K();
+    writeSqwPinMode(DS3231_OFF);
+    
     sync();
 
-    // make sure that Alarm 1 is off
-    myRTC.turnOffAlarm(1);
-    myRTC.setA1Time(1,1,0xFF,1,0b01100000, false, false, false);        // write nonsense to ensure that Alarm 1 wont block INT pin
-    if (myRTC.checkIfAlarm(1)) {
-        ESP_LOGW(TAG, "Failed to disable Alarm 1");
-    }
+    clearAlarm(1);
+    clearAlarm(2);
 
-    // now set Alarm 2
-    myRTC.turnOffAlarm(2);
-    myRTC.setA2Time(alarmDay, alarmHour, alarmMinute, alarmBits, alarmDayIsDay, alarmH12, alarmPM);
-    myRTC.turnOnAlarm(2);
-    if (!myRTC.checkIfAlarm(2)) {
-        ESP_LOGW(TAG, "Failed to enable Alarm 2");
+    disableAlarm(1);
+    
+    if (!setAlarm2(DateTime(), DS3231_A2_PerMinute)) {
+        ESP_LOGE(TAG, "couldn't set Alarm");
     }
 }
 
 void RTC::sync() {
-    ESP_LOGI(TAG, "Syncing RTC with NTP");
-    myRTC.setEpoch(_wifi.getTime());
+    ESP_LOGI(TAG, "Syncing RTC with sntp...");
+    adjust(DateTime(_wifi.getTime()));
 }
 
-void RTC::disable() {
-    myRTC.turnOffAlarm(1);
-    if (myRTC.checkIfAlarm(1)) {
-        ESP_LOGW(TAG, "Failed to disable Alarm 1");
-    }
-
-    myRTC.turnOffAlarm(2);
-    if (myRTC.checkIfAlarm(2)) {
-        ESP_LOGW(TAG, "Failed to disable Alarm 2");
-    }
-}
-
-int RTC::getM() {
-    return myRTC.getMinute();
-}
-
-int RTC::getH() {
-    return myRTC.getHour(h12, hPM);
-}
-
+/*!
+    @return True if rtc power was lost or false if it is running
+*/
 bool RTC::check() {
-    bool x = myRTC.oscillatorCheck();
-    ESP_LOGI(TAG, "RTC Oscillator: %s", x==1 ? "OK":"FAIL");
+    bool x = lostPower();
+    ESP_LOGI(TAG, "RTC oscillator: %s", x==0 ? "OK":"FAIL");
     return x;
 }
 
-void RTC::clearAlarm() {
-    myRTC.checkIfAlarm(2);
+tm* RTC::local() {
+    time_t t = now().unixtime();
+    return localtime(&t);
+}
+
+uint8_t RTC::getM() {
+    return local()->tm_min;
+}
+
+uint8_t RTC::getH() {
+    return local()->tm_hour;
 }
 
 RTC rtc;

@@ -1,4 +1,6 @@
 
+// https://blog.voneicken.com/2018/lp-wifi-esp32-2/
+
 #include "myWifi.h"
 
 bool MyWiFi::checkCfg() {
@@ -24,13 +26,13 @@ bool MyWiFi::checkCfg() {
 
 void MyWiFi::writecfg(void) {
 	// save new info
-	uint8_t *bssid = WiFi.BSSID();
+	uint8_t *bssid = BSSID();
 	for (int i = 0; i < sizeof(cfgbuf.mac); i++) cfgbuf.mac[i] = bssid[i];
-	cfgbuf.chl = WiFi.channel();
-	cfgbuf.ip = WiFi.localIP();
-	cfgbuf.gw = WiFi.gatewayIP();
-	cfgbuf.msk = WiFi.subnetMask();
-	cfgbuf.dns = WiFi.dnsIP();
+	cfgbuf.chl = channel();
+	cfgbuf.ip = localIP();
+	cfgbuf.gw = gatewayIP();
+	cfgbuf.msk = subnetMask();
+	cfgbuf.dns = dnsIP();
 	// recalculate checksum
 	uint32_t x = 0;
 	uint32_t *p = (uint32_t *)cfgbuf.mac;
@@ -52,41 +54,41 @@ bool MyWiFi::init() {
 #endif
 
 	// Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
-	if (WiFi.getMode() != WIFI_OFF) {
+	if (getMode() != WIFI_OFF) {
 		ESP_LOGW(TAG, "Wifi wasn't off!");
-		WiFi.persistent(true);
-		WiFi.mode(WIFI_OFF);
+		persistent(true);
+		mode(WIFI_OFF);
 	}
 
 	// Init Wifi in STA mode and connect
-	WiFi.persistent(false);
-	WiFi.mode(WIFI_STA);
+	persistent(false);
+	mode(WIFI_STA);
 	int m = cfgbuf.mode;
 	bool ok;
 
-	ssid = _setup.getParam("inputWifiSSID");
-	pwd = _setup.getParam("inputWifiPWD");
+	ssid = _setup.getParam(PARAM_WIFI_SSID);
+	pwd = _setup.getParam(PARAM_WIFI_PWD);
 
 	ESP_LOGI(TAG, "Trying to connect to: %s", ssid.c_str());
 
-	WiFi.setHostname(getID());
+	setHostname(getID());
 	
 	switch (cfgbuf.mode) {
 		case 0:
-		ok = WiFi.begin(ssid, pwd);
+		ok = begin(ssid, pwd);
 		break;
 	case 1:
-		ok = WiFi.begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
+		ok = begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
 		break;
 	case 2:
-		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
+		ok = config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
 		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d", m);
-		ok = WiFi.begin(ssid, pwd);
+		ok = begin(ssid, pwd);
 		break;
 	default:
-		ok = WiFi.config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
+		ok = config(cfgbuf.ip, cfgbuf.gw, cfgbuf.msk, cfgbuf.dns);
 		if (!ok) ESP_LOGW(TAG, "*** Wifi.config failed, mode=%d", m);
-		ok = WiFi.begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
+		ok = begin(ssid, pwd, cfgbuf.chl, cfgbuf.mac);
 		cfgbuf.mode = -1;
 		break;
 	}
@@ -96,9 +98,9 @@ bool MyWiFi::init() {
 
 	unsigned long lastms = millis();
 	while (1) {
-		if (WiFi.status() == WL_CONNECTED) {
+		if (status() == WL_CONNECTED) {
 			uint32_t wifiConnMs = millis();
-			ESP_LOGI(TAG, "Wifi successfully connected in %dms using hostname: %s", wifiConnMs, WiFi.getHostname());
+			ESP_LOGI(TAG, "Wifi successfully connected in %dms using hostname: %s", wifiConnMs, getHostname());
 			writecfg();
 			break;
 		}
@@ -119,14 +121,18 @@ bool MyWiFi::init() {
 }
 
 void MyWiFi::disable() {
-	WiFi.mode(WIFI_OFF);
+	mode(WIFI_OFF);
 }
 
 time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
 
-	configTzTime(_setup.getParam("inputTZ").c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
+	if (getMode() != WIFI_STA) {
+		init();
+	}
+
+	configTzTime(_setup.getParam(PARAM_TZ_OFFSET).c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
 
 	unsigned long lastms = millis();
 	while (sntp_get_sync_status() != SNTP_SYNC_STATUS_COMPLETED) {
