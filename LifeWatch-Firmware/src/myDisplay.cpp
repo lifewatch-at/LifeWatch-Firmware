@@ -121,19 +121,25 @@ void myDisplay::init()
     display.setCursor(x + w - tbw2_co - 15, y_1 + tbh2_co + 8);
     display.print(CO);
 
-    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, 100, 100, GxEPD_BLACK);
-    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   100, 100, GxEPD_BLACK);
+    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
   }
   while (display.nextPage());
 
-  // delay(1000);
+  delay(1000);
 
-  // updateSpace_1("hum:34.6%");
-  // updateSpace_2("temp:23.8C");
+  updateSpace_1("hum:34.6%");
+  updateSpace_2("temp:23.8C");
   updateSpace_3("CO2",   190,  100,  250);
   updateSpace_4("CO",     13,   10,   20);
   updateSpace_5("TVOC", 1445, 1000, 2000);
-  // updateTime(11, 33, false);
+  updateTime(11, 33, true);
+
+  BatteryWarning(true);
+  delay(5000);
+  BatteryWarning(false);
+  delay(1000);
+  display.refresh();
 
   display.hibernate();
 }
@@ -286,7 +292,18 @@ void myDisplay::updateSpace_5(const char *name, const float wert, const float mi
 void myDisplay::updateTime(int hour, int min, bool partial) {
   char time[6];
 
-  sprintf(time, "%d:%d", hour, min);
+  if (hour < 10 && min >= 10) {
+    sprintf(time, "0%d:%d", hour, min);
+  }
+  else if (hour >= 10 && min < 10) {
+    sprintf(time, "%d:0%d", hour, min);
+  }
+  else if (hour < 10 && min < 10) {
+    sprintf(time, "0%d:0%d", hour, min);
+  }
+  else {
+    sprintf(time, "%d:%d", hour, min);
+  }
 
   display.setPartialWindow(display.width()*0.3125, display.height()*0.25*CORRECTION, 
                            display.width()*0.375 , display.height()*0.25*COR);
@@ -313,4 +330,23 @@ void myDisplay::updateTime(int hour, int min, bool partial) {
 
 void myDisplay::refresh() {
   display.refresh();
+}
+
+void myDisplay::BatteryWarning(bool show_warning) {
+  if (show_warning) {
+    display.setPartialWindow(0,display.height()*0.3, display.width()*0.15, display.height()*0.2);
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+      display.drawXBitmap(0, display.height()*0.36, Akkuwarnung, AKKUWARNUNG_WIDTH, AKKUWARNUNG_HEIGHT, GxEPD_BLACK);
+    } while (display.nextPage());
+  }
+  else {
+    display.setPartialWindow(0,display.height()*0.3, display.width()*0.15, display.height()*0.2);
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+    } while (display.nextPage());
+    
+  }
 }

@@ -8,12 +8,19 @@
 #include "Bold95.h"
 #include "smileys.h"
 
+#define DISPLAY_750
+//#undef  DISPLAY_750
+
+#define ESP32_S2
+//#undef  ESP32_S2
+
 class myDisplay
 {
 public:
   void init();
   void deepSleep();
   void refresh();
+  void BatteryWarning(bool show_warning);
   void updateTime(int hour, int min, bool partial);
   void updateSpace_1(const char *val_space_1);
   void updateSpace_2(const char *val_space_2);

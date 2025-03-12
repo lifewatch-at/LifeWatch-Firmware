@@ -5,6 +5,10 @@
 #include "myWifi.h"
 #include "initSetup.h"
 #include "rtc.h"
+#include "myDisplay.h"
+
+
+myDisplay _display;
 
 const char* TAG = "main";
 
