@@ -37,12 +37,11 @@ inline void rtc_loop() {
 			rtc.sync();
 		}
 	}
-
-	ESP_LOGI(TAG, "time: %2d:%2d", rtc.getH(), rtc.getM());
+	ESP_LOGI(TAG, "localtime: %2d:%2d", rtc.getH(), rtc.getM());
 }
 
-inline void gettosleep() {
-	ESP_LOGI(TAG, "setup done. going to sleep...\n");
+inline void gotosleep() {
+	ESP_LOGI(TAG, "going to sleep...\n");
 	wake_cnt++;
 	pinMode(RTC_INT, INPUT);
 	esp_sleep_enable_ext0_wakeup(GPIO_NUM_7, LOW);
@@ -51,15 +50,16 @@ inline void gettosleep() {
 }
 
 void setup() {
-	Serial.setDebugOutput(true);
+//	Serial.setDebugOutput(true);
 	Serial.begin(115200);
 	delay(2000);
-	ESP_LOGI(TAG, "setup started.");
+	ESP_LOGI(TAG, "setup started. wake count: %d", wake_cnt);
 	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
 	wifi_loop();
 	Wire.begin(MB_SDA, MB_SCL, 400000);
 	rtc_loop();
-	gettosleep();
+	ESP_LOGI(TAG, "setup done.");
+	gotosleep();
 }
 
 void loop() {}

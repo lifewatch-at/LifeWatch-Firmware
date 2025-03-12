@@ -94,11 +94,11 @@ void Setup::init() {
 	// Start WiFi AP
 	const char* id = _wifi.getID();
 	ESP_LOGI(TAGS, "Starting AP using SSID: %s", id);
-	WiFi.mode(WIFI_OFF);
-	WiFi.mode(WIFI_AP);
-	WiFi.softAP(id, password);
+	_wifi.mode(WIFI_OFF);
+	_wifi.mode(WIFI_AP);
+	_wifi.softAP(id, password);
 	delay(100);
-	WiFi.softAPConfig(apip, apip, IPAddress(255,255,255,0));
+	_wifi.softAPConfig(apip, apip, IPAddress(255,255,255,0));
 	
 	
 	// Send web page with input fields to client
@@ -145,17 +145,17 @@ void Setup::init() {
 
 	server.onNotFound(notFound);
 	server.begin();
-	ESP_LOGI(TAGS, "Webserver started on %s", WiFi.softAPIP().toString());
+	ESP_LOGI(TAGS, "Webserver started on %s", _wifi.softAPIP().toString());
 
 	unsigned long lastms = millis();
 	while (1) {
 		if (millis()-lastms >= 10000) {
-			ESP_LOGD(TAGS, "setup loop");
+			ESP_LOGV(TAGS, "setup loop");
 			lastms = millis();
 		}
 		if (done) {
 			server.end();
-			WiFi.mode(WIFI_OFF);
+			_wifi.mode(WIFI_OFF);
 			break;
 		}
 	}
@@ -163,6 +163,7 @@ void Setup::init() {
 
 String Setup::getParam(String param) {
 	JsonDocument doc;
+	ESP_LOGV(TAGS, "reading param: %s", param);
 	deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
 	return doc[param];
 }
