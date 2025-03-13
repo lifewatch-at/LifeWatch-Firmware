@@ -26,16 +26,139 @@ display(GxEPD2_1330_GDEM133T91(5, 27, 26, 25)); // ESP32
 SPIClass spi(HSPI);
 #endif
 
-void myDisplay::init()
-{
+void myDisplay::init() {
 #ifdef ARDUINO_ESP32S2_DEV
   spi.begin(12, -1, 11, 5);
   display.init(115200, true, 10, false, spi, SPISettings(500000, MSBFIRST, SPI_MODE0));
   pinMode(5, OUTPUT);
-#endif
-
+#else
   display.init(115200, true, 2, false);
+#endif
+}
 
+void myDisplay::updateEverything(int hour, int min, char* space_1, char* space_2,
+const char *name_space_3, const float value_space_3, const float min_space_3, const float max_space_3,
+const char *name_space_4, const float value_space_4, const float min_space_4, const float max_space_4,
+const char *name_space_5, const float value_space_5, const float min_space_5, const float max_space_5)
+{
+  display.setRotation(0);
+  display.setTextColor(GxEPD_BLACK);
+
+  char time[6];
+
+  if (hour < 10 && min >= 10) {
+    sprintf(time, "0%d:%d", hour, min);
+  }
+  else if (hour >= 10 && min < 10) {
+    sprintf(time, "%d:0%d", hour, min);
+  }
+  else if (hour < 10 && min < 10) {
+    sprintf(time, "0%d:0%d", hour, min);
+  }
+  else {
+    sprintf(time, "%d:%d", hour, min);
+  }
+
+  do {
+    display.fillScreen(GxEPD_WHITE);
+
+    /*Balken*/
+    int x   = display.width() * 0.123; 
+    int w   = display.width() * 0.7563;
+    int h   = display.height()* 0.1042 * COR;
+    int y_1 = display.height()* 0.6042 * CORRECTION;
+    int y_2 = display.height()* 0.7292 * CORRECTION;
+    int y_3 = display.height()* 0.8542 * CORRECTION;
+
+    display.fillRect(x    , y_1    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_1 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    display.fillRect(x    , y_2    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_2 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    display.fillRect(x    , y_3    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_3 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    /*Smileys*/
+    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+
+    /*common Space 1 - 5*/
+    display.setFont(&bold_95);
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    int y;
+
+    /*time*/
+    display.getTextBounds(time, 0, 0, &tbx, &tby, &tbw, &tbh);
+    x = ((display.width()  - tbw) / 2) - tbx;
+    y = ((display.height()*CORRECTION - tbh) / 2) - tby - (display.height()*0.1);
+
+    display.setCursor(x, y);
+    display.print(time);
+
+    display.setFont(&FreeMonoBold24pt7b);
+
+    /*Space_1*/
+    display.getTextBounds(space_1, 0, 0, &tbx, &tby, &tbw, &tbh);
+    x = ((display.width() *0.4  - tbw) / 2) - tbx;
+    y = ((display.height()*0.25*CORRECTION - tbh) / 2) - tby;
+    display.setCursor(x, y);
+    display.print(space_1);
+
+    /*Space_2*/
+    display.getTextBounds(space_2, 0, 0, &tbx, &tby, &tbw, &tbh);
+    x = ((display.width() *0.4 - tbw) / 2) - tbx + display.width()*0.6;
+    y = ((display.height()*0.25*CORRECTION - tbh) / 2) - tby;
+    display.setCursor(x, y);
+    display.print(space_2);
+
+    /*common Space 3 - 5*/
+    uint16_t new_w;
+    bool unter_haelfte;
+
+    /*Space_3*/
+    unter_haelfte = !((((max_space_3 - min_space_3) / 2) + min_space_3) > value_space_3); 
+    constrain(value_space_3, min_space_3, max_space_3);
+    new_w = map(value_space_3, min_space_3, max_space_3, 0, display.width()*0.725);
+
+    display.getTextBounds(name_space_3, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.61875*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.61875*CORRECTION + tbh);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_3);
+
+    /*Space_4*/
+    unter_haelfte = !((((max_space_4 - min_space_4) / 2) + min_space_4) > value_space_4); 
+    constrain(value_space_4, min_space_4, max_space_4);
+    new_w = map(value_space_4, min_space_4, max_space_4, 0, display.width()*0.725);
+
+    display.getTextBounds(name_space_4, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.74375*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.74375*CORRECTION + tbh+2);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_4);
+
+    /*Space_5*/
+    unter_haelfte = !((((max_space_5 - min_space_5) / 2) + min_space_5) > value_space_5); 
+    constrain(value_space_5, min_space_5, max_space_5);
+    new_w = map(value_space_5, min_space_5, max_space_5, 0, display.width()*0.725);
+
+    display.getTextBounds(name_space_5, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.86875*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.86875*CORRECTION + tbh+2);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_5);
+
+
+
+  } while (display.nextPage());
+}
+
+void myDisplay::printLayout()
+{
   display.setRotation(0);
   display.setFont(&bold_95);
   display.setTextColor(GxEPD_BLACK);
@@ -92,7 +215,7 @@ void myDisplay::init()
     display.setCursor(x_hum, y_hum);
     display.print(_cHum);
 
-    /***   Balken für CO2   ***/
+    /***   Balken  ***/
     int x   = display.width() * 0.123; 
     int w   = display.width() * 0.7563;
     int h   = display.height()* 0.1042 * COR;
@@ -121,8 +244,8 @@ void myDisplay::init()
     display.setCursor(x + w - tbw2_co - 15, y_1 + tbh2_co + 8);
     display.print(CO);
 
-    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, 100, 100, GxEPD_BLACK);
-    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   100, 100, GxEPD_BLACK);
+    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
   }
   while (display.nextPage());
 
@@ -130,10 +253,16 @@ void myDisplay::init()
 
   // updateSpace_1("hum:34.6%");
   // updateSpace_2("temp:23.8C");
-  updateSpace_3("CO2",   190,  100,  250);
-  updateSpace_4("CO",     13,   10,   20);
-  updateSpace_5("TVOC", 1445, 1000, 2000);
-  // updateTime(11, 33, false);
+  // updateSpace_3("CO2",   190,  100,  250);
+  // updateSpace_4("CO",     13,   10,   20);
+  // updateSpace_5("TVOC", 1445, 1000, 2000);
+  // updateTime(11, 33, true);
+
+  // BatteryWarning(true);
+  // delay(5000);
+  // BatteryWarning(false);
+  // delay(1000);
+  // display.refresh();
 
   display.hibernate();
 }
@@ -286,7 +415,18 @@ void myDisplay::updateSpace_5(const char *name, const float wert, const float mi
 void myDisplay::updateTime(int hour, int min, bool partial) {
   char time[6];
 
-  sprintf(time, "%d:%d", hour, min);
+  if (hour < 10 && min >= 10) {
+    sprintf(time, "0%d:%d", hour, min);
+  }
+  else if (hour >= 10 && min < 10) {
+    sprintf(time, "%d:0%d", hour, min);
+  }
+  else if (hour < 10 && min < 10) {
+    sprintf(time, "0%d:0%d", hour, min);
+  }
+  else {
+    sprintf(time, "%d:%d", hour, min);
+  }
 
   display.setPartialWindow(display.width()*0.3125, display.height()*0.25*CORRECTION, 
                            display.width()*0.375 , display.height()*0.25*COR);
@@ -313,4 +453,23 @@ void myDisplay::updateTime(int hour, int min, bool partial) {
 
 void myDisplay::refresh() {
   display.refresh();
+}
+
+void myDisplay::BatteryWarning(bool show_warning) {
+  if (show_warning) {
+    display.setPartialWindow(0,display.height()*0.3, display.width()*0.15, display.height()*0.2);
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+      display.drawXBitmap(0, display.height()*0.36, Akkuwarnung, AKKUWARNUNG_WIDTH, AKKUWARNUNG_HEIGHT, GxEPD_BLACK);
+    } while (display.nextPage());
+  }
+  else {
+    display.setPartialWindow(0,display.height()*0.3, display.width()*0.15, display.height()*0.2);
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+    } while (display.nextPage());
+    
+  }
 }

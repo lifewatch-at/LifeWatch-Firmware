@@ -27,7 +27,7 @@ static RTC_DATA_ATTR struct {
 	uint32_t chk;
 } cfgbuf;
 
-class MyWiFi {
+class MyWiFi : public WiFiClass {
 public:
 	bool checkCfg();
 	void writecfg(void);

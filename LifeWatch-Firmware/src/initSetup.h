@@ -2,7 +2,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <WiFi.h>
 #include "myWifi.h"
 #include <AsyncTCP.h>
 #include <LittleFS.h>

@@ -1,35 +1,21 @@
 
-#include <DS3231.h>
-#include <Wire.h>
-
-#include "pins.h"
-#include "myWifi.h"
-
 #pragma once
 
-class RTC {
+#include <Arduino.h>
+#include <RTClib.h>
+#include <time.h>
+
+#include "myWifi.h"
+
+class RTC : public RTC_DS3231 {
 public:
     void init();
     void sync();
-    void disable();
-    int getM();
-    int getH();
     bool check();
-    void clearAlarm();
+    tm* local();
+    uint8_t getM();
+    uint8_t getH();
 private:
-
-    byte alarmDay = 0;
-    byte alarmHour = 0;
-    byte alarmMinute = 0;
-    byte alarmSecond = 0;
-    byte alarmBits = 0b01110000; // Alarm 2 every minute at 00
-    bool alarmDayIsDay = false;
-    bool alarmH12 = false;
-    bool alarmPM = false;
-
-    bool h12 = false;
-    bool hPM = false;
-
     const char* TAG = "RTC";
 };
 
