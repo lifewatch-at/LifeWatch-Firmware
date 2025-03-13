@@ -10,12 +10,13 @@
 
 /*  Messwerte  */
 
-float temp   = 666.6;
-float hum    = 666.6;
-float pm2_5  = 666.6;
-float co_ppm = 666.6;
+float temp     = 666.6;
+float hum      = 666.6;
+float pm2_5    = 666.6;
+float co_ppm   = 666.6;
+float noise_db = 666.6;
 
-uint32_t tvoc    = 66666;
+uint32_t tvoc    = 666;
 uint16_t srawNox = 666;
 
 /*  Sensor-Objekte  */
@@ -101,6 +102,12 @@ void module_check(void) {
 
 
 void noise_read(void) {
+    Wire1.beginTransmission(0x48);
+    Wire1.write(0x0A);
+    Wire1.endTransmission();
+    Wire1.requestFrom(0x48, 1);
+    delay(10);
+    noise_db = Wire1.read();
 }
 
 void temp_read(void) {
