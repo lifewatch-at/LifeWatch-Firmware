@@ -36,7 +36,7 @@ void myDisplay::init() {
 #endif
 }
 
-void myDisplay::updateEverything(int hour, int min, char* space_1, char* space_2,
+void myDisplay::updateEverything(int hour, int min, const char* space_1, const char* space_2,
 const char *name_space_3, const float value_space_3, const float min_space_3, const float max_space_3,
 const char *name_space_4, const float value_space_4, const float min_space_4, const float max_space_4,
 const char *name_space_5, const float value_space_5, const float min_space_5, const float max_space_5)
@@ -118,8 +118,8 @@ const char *name_space_5, const float value_space_5, const float min_space_5, co
 
     /*Space_3*/
     unter_haelfte = !((((max_space_3 - min_space_3) / 2) + min_space_3) > value_space_3); 
-    constrain(value_space_3, min_space_3, max_space_3);
-    new_w = map(value_space_3, min_space_3, max_space_3, 0, display.width()*0.725);
+    new_w = map(value_space_3, min_space_3, max_space_3, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
 
     display.getTextBounds(name_space_3, 0, 0, &tbx, &tby, &tbw, &tbh);
 
@@ -130,9 +130,8 @@ const char *name_space_5, const float value_space_5, const float min_space_5, co
 
     /*Space_4*/
     unter_haelfte = !((((max_space_4 - min_space_4) / 2) + min_space_4) > value_space_4); 
-    constrain(value_space_4, min_space_4, max_space_4);
-    new_w = map(value_space_4, min_space_4, max_space_4, 0, display.width()*0.725);
-
+    new_w = map(value_space_4, min_space_4, max_space_4, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
     display.getTextBounds(name_space_4, 0, 0, &tbx, &tby, &tbw, &tbh);
 
     display.fillRect(display.width()*0.1375, display.height()*0.74375*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
@@ -142,9 +141,8 @@ const char *name_space_5, const float value_space_5, const float min_space_5, co
 
     /*Space_5*/
     unter_haelfte = !((((max_space_5 - min_space_5) / 2) + min_space_5) > value_space_5); 
-    constrain(value_space_5, min_space_5, max_space_5);
-    new_w = map(value_space_5, min_space_5, max_space_5, 0, display.width()*0.725);
-
+    new_w = map(value_space_5, min_space_5, max_space_5, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
     display.getTextBounds(name_space_5, 0, 0, &tbx, &tby, &tbw, &tbh);
 
     display.fillRect(display.width()*0.1375, display.height()*0.86875*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
