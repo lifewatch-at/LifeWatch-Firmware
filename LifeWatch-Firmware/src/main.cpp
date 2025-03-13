@@ -72,7 +72,7 @@ inline void gotosleep() {
 }
 
 inline void mqtt_publish() {
-	mqtt.mqttConnect();
+	mqtt.connect();
 	Telemetry tel("gggg","tgthdgfd",1234567,66);
 	Sensor temp_sensor(modules[0].name, temp  , modules[0].unit);
 	Sensor hum_sensor (modules[1].name, hum   , modules[1].unit);
@@ -91,7 +91,7 @@ inline void mqtt_publish() {
 	String ssdf;
 	serializeJson(device.toJSON(),ssdf);
 	ESP_LOGI(TAG, "%s", ssdf.c_str());
-	mqtt.mqttSend(device);
+	mqtt.send(device);
 }
 
 void setup() {
@@ -102,9 +102,8 @@ void setup() {
 	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
 	wifi_loop();
 	Wire.begin(MB_SDA, MB_SCL, 400000);
-	Wire1.begin(8, 9, 400000);
+	Wire1.begin(CB_SDA, CB_SCL, 400000);
 	rtc_loop();
-	delay(1000);
 	module_check();
 	display_setup();
 	mqtt_publish();
@@ -112,33 +111,4 @@ void setup() {
 	gotosleep();
 }
 
-void loop() {
-	// module_check();
-
-	// // char *secc_1;
-	// // sprintf(secc_1, "%3.1f deg C", &temp);
-	// // char *secc_2;
-	// // sprintf(secc_2, "%3.1f %rH", &hum);
-	
-	// _display.updateEverything(69, 11, 
-	// 							"ligma", "balls", 
-	// 							"CO", co_ppm, 0, 15,
-	// 							"TVOC", tvoc, 0, 1000,
-	// 							"CO2", srawNox, 0, 100);
-
-	// Serial.print("\ntemp:\t");
-	// Serial.println(temp);
-	// Serial.print("hum:\t");
-	// Serial.println(hum);
-	// Serial.print("TVOC:\t");
-	// Serial.println(tvoc);
-	// Serial.print("NOx:\t");
-	// Serial.println(srawNox);
-	// Serial.print("pm2_5:\t");
-	// Serial.println(pm2_5);
-	// Serial.print("CO:\t");
-	// Serial.println(co_ppm);
-	// Serial.print("\n=================================\n");
-
-	// delay(10000);
-}
+void loop() {}
