@@ -31,17 +31,15 @@ class MyWiFi : public WiFiClass {
 public:
 	bool checkCfg();
 	void writecfg(void);
-	void disable();
 	bool init();
 	time_t getTime();
 	const char * getID();
 	
-	private:
+private:
 	const char* TAG = "WIFI";
-	
-	String ssid = "";
-	String pwd = "";
-	String id = "";
+	String ssid;
+	String pwd;
+	char id[17];	// 10 characters for "LifeWatch-" + 3*2 characters for hex + 1 character for null terminator
 };
 
 extern MyWiFi _wifi;

@@ -120,13 +120,11 @@ bool MyWiFi::init() {
 	return true;
 }
 
-void MyWiFi::disable() {
-	mode(WIFI_OFF);
-}
-
 time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
+
+	ESP_LOGI(TAG, "Retrieving time...");
 
 	if (getMode() != WIFI_STA) {
 		init();
@@ -152,14 +150,10 @@ time_t MyWiFi::getTime() {
 
 const char * MyWiFi::getID() {
 	unsigned char mac_base[6] = {0};
-
 	if (esp_efuse_mac_get_default(mac_base) == ESP_OK) {
-		char buffer[17];  // 10 characters for title + 3*2 characters for hex + 1 character for null terminator
-		sprintf(buffer, "LifeWatch-%02X%02X%02X", mac_base[3], mac_base[4], mac_base[5]);
-		id = buffer;
+		sprintf(id, "LifeWatch-%02X%02X%02X", mac_base[3], mac_base[4], mac_base[5]);
 	}
-
-	return id.c_str();
+	return id;
 }
 
 MyWiFi _wifi;
