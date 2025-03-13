@@ -12,7 +12,7 @@
 #include "initSetup.h"
 
 #define MDNS_TIMEOUT 1000
-#define MQTT_TIMEOUT 5000
+#define MQTT_TIMEOUT 1000
 
 #define MQTT_HOST	"LifeWatch-Server"
 #define MQTT_PORT	1883
@@ -38,4 +38,4 @@ private:
 	String mqtt_pwd;
 };
 
-extern MQTT _mqtt;
+extern MQTT mqtt;

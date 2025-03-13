@@ -9,8 +9,8 @@ volatile bool gotResponse = false;
 
 
 void callback(char* topic, byte* payload, unsigned int length) {
-	ESP_LOGI(_mqtt.TAG, "received message from topic: %s", topic);
-	deserializeJson(_mqtt.response, payload, length);
+	ESP_LOGI(mqtt.TAG, "received message from topic: %s", topic);
+	deserializeJson(mqtt.response, payload, length);
 	gotResponse = true;
 
 	// TODO: parse the received json document
@@ -82,6 +82,7 @@ void MQTT::publish(const char *pub_topic, JsonDocument doc) {
 void MQTT::send(Device device) {
 	if (mqtt_client.connected()) {
 		publish(strcat(PUB_ROOT, client_id), device.toJSON());
+		delay(20);		// wait for the data to leave
 	}
 	else {
 		ESP_LOGW(TAG, "MQTT not connected.\n");
@@ -89,7 +90,7 @@ void MQTT::send(Device device) {
 }
 
 void MQTT::loop() {
-	ESP_LOGD(TAG, "Waiting for LifeWatch server response...");
+	ESP_LOGI(TAG, "Waiting for LifeWatch server response...");
 	unsigned long lastms = millis();
 	while(!gotResponse) {
 		mqtt_client.loop();
@@ -99,6 +100,20 @@ void MQTT::loop() {
 			break;
 		}
 	}
+
+	ESP_LOGI(TAG, "Closing MQTT connection...");
+	mqtt_client.disconnect();
+
+	ESP_LOGI(TAG, "Closing WiFi connection and disabling radio...");
+	_wifi.disconnect(true, false);
+	
+	lastms = millis();
+	while ((mqtt_client.connected()) || (_wifi.status() == WL_CONNECTED)) {
+		if (millis()-lastms >= 1000) {
+			ESP_LOGE(TAG, "Error while disconnecting");
+			break;
+		}
+	}
 }
 
-MQTT _mqtt;
+MQTT mqtt;
