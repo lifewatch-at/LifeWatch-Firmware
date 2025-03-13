@@ -22,10 +22,10 @@ public:
   void updateSpace_3(const char *name, const float wert, const float min, const float max);
   void updateSpace_4(const char *name, const float wert, const float min, const float max);
   void updateSpace_5(const char *name, const float wert, const float min, const float max);
-  void updateEverything(int hour, int min, char* space_1, char* space_2,
-    const char *name_space_3, const float value_space_3 = 0, const float min_space_3 = 0, const float max_space_3 = 100,
-    const char *name_space_4, const float value_space_4 = 0, const float min_space_4 = 0, const float max_space_4 = 100,
-    const char *name_space_5, const float value_space_5 = 0, const float min_space_5 = 0, const float max_space_5 = 100);
+  void updateEverything(int hour = 0, int min = 0, const char* space_1 = "", const char* space_2 = "",
+    const char *name_space_3 = "", const float value_space_3 = 0, const float min_space_3 = 0, const float max_space_3 = 100,
+    const char *name_space_4 = "", const float value_space_4 = 0, const float min_space_4 = 0, const float max_space_4 = 100,
+    const char *name_space_5 = "", const float value_space_5 = 0, const float min_space_5 = 0, const float max_space_5 = 100);
 
 private:
   uint16_t map(uint16_t x, uint16_t IN_min, uint16_t IN_max, uint16_t OUT_min, uint16_t OUT_max);
