@@ -8,9 +8,11 @@
 #include "myDisplay.h"
 #include "module.h"
 #include "mqtt.h"	
+#include "BQ25792_Driver.h"
 
 
 myDisplay _display;
+BQ25792 charger(PWR_INT, -1);
 
 const char* TAG = "main";
 
@@ -73,7 +75,7 @@ inline void gotosleep() {
 
 inline void mqtt_publish() {
 	mqtt.connect();
-	Telemetry tel(_wifi.getID(),_setup.getParam(PARAM_NAME),1234567,66);
+	Telemetry tel(_wifi.getID(), _setup.getParam(PARAM_NAME), constrain(map(charger.getVBAT()*100,700,840,0,100),0,100));
 	Sensor temp_sensor(modules[0].name, temp  , modules[0].unit);
 	Sensor hum_sensor (modules[1].name, hum   , modules[1].unit);
 	Sensor co_sensor  (modules[4].name, co_ppm, modules[4].unit);
