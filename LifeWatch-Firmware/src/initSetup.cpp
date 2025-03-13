@@ -163,7 +163,7 @@ void Setup::init() {
 
 String Setup::getParam(String param) {
 	JsonDocument doc;
-	ESP_LOGV(TAGS, "reading param: %s", param);
+	ESP_LOGI(TAGS, "reading param: %s", param);
 	deserializeJson(doc, readFile(LittleFS, "/credentials.json"));
 	return doc[param];
 }

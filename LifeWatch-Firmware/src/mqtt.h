@@ -11,8 +11,8 @@
 #include "json.h"
 #include "initSetup.h"
 
-#define MDNS_TIMEOUT 1000
-#define MQTT_TIMEOUT 1000
+#define MDNS_TIMEOUT 5000
+#define MQTT_TIMEOUT 5000
 
 #define MQTT_HOST	"LifeWatch-Server"
 #define MQTT_PORT	1883
@@ -36,6 +36,8 @@ private:
 	const char *client_id = _wifi.getID();
 	String mqtt_user;
 	String mqtt_pwd;
+	char subTopic[32] = SUB_ROOT;	// 15 characters for root + 17 for id 
+	char pubTopic[32] = PUB_ROOT;	// 15 characters for root + 17 for id
 };
 
 extern MQTT mqtt;

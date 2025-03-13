@@ -88,9 +88,6 @@ inline void mqtt_publish() {
 	device.add(&pm_sensor  );
 	device.add(&tvoc_sensor);
 	device.add(&nox_sensor );
-	String ssdf;
-	serializeJson(device.toJSON(),ssdf);
-	ESP_LOGI(TAG, "%s", ssdf.c_str());
 	mqtt.send(device);
 }
 

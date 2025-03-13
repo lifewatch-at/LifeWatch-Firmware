@@ -29,7 +29,7 @@ void MQTT::connect() {
 	ESP_LOGI(TAG, "Resolving hostname: %s", MQTT_HOST);
 	lastms = millis();
 	while (1) {
-		MDNS.queryHost(MQTT_HOST);
+		srvip = MDNS.queryHost(MQTT_HOST);
 		if (srvip != IPAddress(0,0,0,0)) {
 			ESP_LOGI(TAG, "Got IP: %s", srvip.toString());
 			break;
@@ -47,13 +47,13 @@ void MQTT::connect() {
 	lastms = millis();
 
 	while (!mqtt_client.connected()) {
-		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...\n", client_id);
+		ESP_LOGI(TAG, "Connecting to MQTT Broker as %s...", client_id);
 		mqtt_client.setServer(srvip, MQTT_PORT);
 		mqtt_client.setCallback(callback);
 		if (mqtt_client.connect(client_id, mqtt_user.c_str(), mqtt_pwd.c_str())) {
-			ESP_LOGI(TAG, "Connected to MQTT broker\n");
+			ESP_LOGI(TAG, "Connected to MQTT broker");
 		} else {
-			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d\n", mqtt_client.state());
+			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d", mqtt_client.state());
 		}
 
 		if (millis()-lastms >= MQTT_TIMEOUT) {
@@ -62,7 +62,7 @@ void MQTT::connect() {
 		}
 	}
 
-	mqtt_client.subscribe(strcat(SUB_ROOT, client_id));
+	mqtt_client.subscribe(strcat(subTopic, client_id));
 }
 
 
@@ -72,20 +72,20 @@ void MQTT::publish(const char *pub_topic, JsonDocument doc) {
 	serializeJson(doc, bufferedClient);
 	bufferedClient.flush();
 	if (mqtt_client.endPublish()) {
-		ESP_LOGI(TAG, "Packet sent successfully.\n");
+		ESP_LOGI(TAG, "Packet sent successfully.");
 	}
 	else {
-		ESP_LOGE(TAG, "Error while sending.\n");
+		ESP_LOGE(TAG, "Error while sending.");
 	}
 }
 
 void MQTT::send(Device device) {
 	if (mqtt_client.connected()) {
-		publish(strcat(PUB_ROOT, client_id), device.toJSON());
+		publish(strcat(pubTopic, client_id), device.toJSON());
 		delay(20);		// wait for the data to leave
 	}
 	else {
-		ESP_LOGW(TAG, "MQTT not connected.\n");
+		ESP_LOGW(TAG, "MQTT not connected.");
 	}
 }
 
