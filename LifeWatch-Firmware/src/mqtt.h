@@ -13,6 +13,7 @@
 
 #define MDNS_TIMEOUT 5000
 #define MQTT_TIMEOUT 5000
+#define SERVER_TIMEOUT 1000
 
 #define MQTT_HOST	"LifeWatch-Server"
 #define MQTT_PORT	1883

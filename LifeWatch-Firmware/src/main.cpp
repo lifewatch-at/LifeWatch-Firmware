@@ -73,7 +73,7 @@ inline void gotosleep() {
 
 inline void mqtt_publish() {
 	mqtt.connect();
-	Telemetry tel("gggg","tgthdgfd",1234567,66);
+	Telemetry tel(_wifi.getID(),_setup.getParam(PARAM_NAME),1234567,66);
 	Sensor temp_sensor(modules[0].name, temp  , modules[0].unit);
 	Sensor hum_sensor (modules[1].name, hum   , modules[1].unit);
 	Sensor co_sensor  (modules[4].name, co_ppm, modules[4].unit);
@@ -89,6 +89,7 @@ inline void mqtt_publish() {
 	device.add(&tvoc_sensor);
 	device.add(&nox_sensor );
 	mqtt.send(device);
+	mqtt.loop();
 }
 
 void setup() {

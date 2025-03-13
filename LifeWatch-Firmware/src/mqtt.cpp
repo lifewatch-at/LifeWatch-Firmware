@@ -95,8 +95,8 @@ void MQTT::loop() {
 	while(!gotResponse) {
 		mqtt_client.loop();
 
-		if (millis()-lastms >= MQTT_TIMEOUT) {
-			ESP_LOGW(TAG, "No response from LifeWatch server after %dms", MQTT_TIMEOUT);
+		if (millis()-lastms >= SERVER_TIMEOUT) {
+			ESP_LOGW(TAG, "No response from LifeWatch server after %dms", SERVER_TIMEOUT);
 			break;
 		}
 	}

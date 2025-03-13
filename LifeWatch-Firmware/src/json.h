@@ -9,7 +9,7 @@
 
 class Telemetry {
 public:
-    Telemetry(String id, String mac, time_t timestamp, int bat) : id(id), name(name), bat(bat), timestamp(timestamp) {};
+    Telemetry(String id, String name, time_t timestamp, int bat) : id(id), name(name), bat(bat), timestamp(timestamp) {};
 
     JsonDocument toJSON();
 private:
