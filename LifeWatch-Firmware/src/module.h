@@ -10,11 +10,13 @@
 
 /*  Messwerte  */
 
-float temp     = 666.6;
-float hum      = 666.6;
-float pm2_5    = 666.6;
-float co_ppm   = 666.6;
-float noise_db = 666.6;
+float temp   = 666.6;
+float hum    = 666.6;
+float pm2_5  = 666.6;
+float co_ppm = 666.6;
+float co2    = 666.6;
+
+int noise_db   = 666.6;
 
 uint32_t tvoc    = 666;
 uint16_t srawNox = 666;
@@ -102,12 +104,14 @@ void module_check(void) {
 
 
 void noise_read(void) {
+    Wire1.setClock(80000);
     Wire1.beginTransmission(0x48);
     Wire1.write(0x0A);
     Wire1.endTransmission();
     Wire1.requestFrom(0x48, 1);
-    delay(10);
-    noise_db = Wire1.read();
+    delay(50);
+    noise_db = (int)Wire1.read();
+    Wire.setClock(400000);
 }
 
 void temp_read(void) {
@@ -144,8 +148,47 @@ void hum_read(void) {
     // hum  = humidity.relative_humidity;
 }
 
+#define SCD41_I2C_ADDRESS 0x62
+
+// Command definitions (based on datasheet)
+#define CMD_START_PERIODIC_MEASUREMENT  0x21B1
+#define CMD_READ_MEASUREMENT            0xEC05
+#define CMD_STOP_PERIODIC_MEASUREMENT   0x3F86
+
 void co2_read(void) {
-// Wert * (44.01*1000/24,45) bei CO2
+    // Start periodic measurement
+    Wire1.beginTransmission(SCD41_I2C_ADDRESS);
+    Wire1.write(CMD_START_PERIODIC_MEASUREMENT >> 8);   // Send MSB
+    Wire1.write(CMD_START_PERIODIC_MEASUREMENT & 0xFF); // Send LSB
+    Wire1.endTransmission();
+
+    // Read measurement data
+    Wire1.beginTransmission(SCD41_I2C_ADDRESS);
+    Wire1.write(CMD_READ_MEASUREMENT >> 8);   // Send MSB
+    Wire1.write(CMD_READ_MEASUREMENT & 0xFF); // Send LSB
+    Wire1.endTransmission();
+
+    delay(1); // Wait for the command execution time (1 ms)
+
+    Wire1.requestFrom(SCD41_I2C_ADDRESS, 9); // Request 9 bytes (CO2, Temp, RH, and CRCs)
+
+    if (Wire1.available() == 9) {
+        uint16_t co2_raw = Wire1.read() << 8 | Wire1.read();
+        Wire1.read(); // Skip CRC
+
+        uint16_t temperature_raw = Wire1.read() << 8 | Wire1.read();
+        Wire1.read(); // Skip CRC
+
+        uint16_t humidity_raw = Wire1.read() << 8 | Wire1.read();
+        Wire1.read(); // Skip CRC
+
+        float _temperature = -45.0 + 175.0 * ((float)temperature_raw / 65535.0);
+        float _humidity = 100.0 * ((float)humidity_raw / 65535.0);
+
+        co2 = co2_raw;//(float)(co2_raw * (44.01*1000/24,45));
+    } else {
+        Serial.println("Failed to read data from SCD41.");
+    }
 }
 
 void speaker_read(void) {
@@ -218,31 +261,31 @@ void pm_read(void) {
 }
 
 void tvoc_read(void) {   
-    Wire1.setClock(15000);
+    // Wire1.setClock(20000);
 
-    Wire1.beginTransmission(0x1A);
-    Wire1.write(0x00);  // Messung starten
-    Wire1.endTransmission();
+    // Wire1.beginTransmission(0x1A);
+    // Wire1.write(0x00);  // Messung starten
+    // Wire1.endTransmission();
 
-    delay(150);
+    // delay(150);
 
-    Wire1.requestFrom(0x1A, 4);
+    // Wire1.requestFrom(0x1A, 4);
 
-    if (Wire1.available() < 4) {
-        Serial.println("I2C Read Error! - TVOC");
-    }
+    // if (Wire1.available() < 4) {
+    //     Serial.println("I2C Read Error! - TVOC");
+    // }
 
-    uint16_t gasRaw   = (Wire1.read() << 8) | Wire1.read();   // Gas Resistance
-    // float gasKOhms = gasRaw / 1000.0;  // laut Datenblatt Umrechnung in kOhm
-    uint16_t tvocRaw  = (Wire1.read() << 8) | Wire1.read();  // TVOC
+    // uint16_t gasRaw   = (Wire1.read() << 8) | Wire1.read();   // Gas Resistance
+    // // float gasKOhms = gasRaw / 1000.0;  // laut Datenblatt Umrechnung in kOhm
+    // uint16_t tvocRaw  = (Wire1.read() << 8) | Wire1.read();  // TVOC
 
-    if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
-        Wire1.setClock(400000);
-        return;
-    }
+    // if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
+    //     Wire1.setClock(400000);
+    //     return;
+    // }
 
-    tvoc = tvocRaw;
-    Wire1.setClock(400000);
+    // tvoc = tvocRaw;
+    // Wire1.setClock(400000);
 }
 
 void light_read(void) {

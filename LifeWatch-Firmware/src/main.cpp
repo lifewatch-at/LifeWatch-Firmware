@@ -51,15 +51,15 @@ inline void rtc_loop() {
 inline void display_setup() {
 	_display.init();
 
-	// char *secc_1;
-	// sprintf(secc_1, "%3.1f deg C", &temp);
-	// char *secc_2;
-	// sprintf(secc_2, "%3.1f %rH", &hum);
+	char secc_1[15];
+	sprintf(secc_1, "%3.1f deg C", temp);
+	char secc_2[15];
+	sprintf(secc_2, "%3.1f %rH", hum);
 	
 	_display.updateEverything(rtc.getH(), rtc.getM(), 
-								"ligma", "BALLS", 
+								secc_1, secc_2, 
 								"CO", co_ppm, 0, 15,
-								"TVOC", tvoc, 0, 1000,
+								"PM", pm2_5, 0, 100,
 								"NOx", srawNox, 0, 100);
 	_display.deepSleep();
 }
@@ -76,22 +76,37 @@ inline void gotosleep() {
 inline void mqtt_publish() {
 	mqtt.connect();
 	Telemetry tel(_wifi.getID(), _setup.getParam(PARAM_NAME), constrain(map(charger.getVBAT()*100,700,840,0,100),0,100));
-	Sensor temp_sensor(modules[0].name, temp  , modules[0].unit);
-	Sensor hum_sensor (modules[1].name, hum   , modules[1].unit);
-	Sensor co_sensor  (modules[4].name, co_ppm, modules[4].unit);
-	Sensor pm_sensor  (modules[5].name, pm2_5 , modules[5].unit);
-	Sensor tvoc_sensor(modules[6].name, (float)tvoc  , modules[6].unit);
-	Sensor nox_sensor (modules[8].name, (float)srawNox, modules[8].unit);
+	Sensor temp_sensor (modules[0].name, temp  , modules[0].unit);
+	Sensor hum_sensor  (modules[1].name, hum   , modules[1].unit);
+	Sensor co2_sensor  (modules[2].name, co2   , modules[2].unit);
+	Sensor co_sensor   (modules[4].name, co_ppm, modules[4].unit);
+	Sensor pm_sensor   (modules[5].name, pm2_5 , modules[5].unit);
+	Sensor tvoc_sensor (modules[6].name, (float)tvoc  , modules[6].unit);
+	Sensor nox_sensor  (modules[8].name, (float)srawNox, modules[8].unit);
+	Sensor noise_sensor(modules[9].name, noise_db, modules[9].unit);
 	Device device;
 	device.telemetry = &tel;
-	device.add(&temp_sensor);
-	device.add(&hum_sensor );
-	device.add(&co_sensor  );
-	device.add(&pm_sensor  );
-	device.add(&tvoc_sensor);
-	device.add(&nox_sensor );
+	device.add(&temp_sensor );
+	device.add(&hum_sensor  );
+	device.add(&co2_sensor  );
+	device.add(&co_sensor   );
+	device.add(&pm_sensor   );
+	device.add(&tvoc_sensor );
+	device.add(&nox_sensor  );
+	device.add(&noise_sensor);
 	mqtt.send(device);
 	mqtt.loop();
+}
+
+void print_values(void) {
+	ESP_LOGI(TAG, "\ntemp =  %5.1f deg C", temp);
+	ESP_LOGI(TAG, "hum = \t%5.1f %rH", hum);
+	ESP_LOGI(TAG, "PM = \t%5.1f ppm", pm2_5);
+	ESP_LOGI(TAG, "CO = \t%5.1f ppm", co_ppm);
+	ESP_LOGI(TAG, "noise = \t%d dB", noise_db);
+	ESP_LOGI(TAG, "TVOC = \t%d ppb", tvoc);
+	ESP_LOGI(TAG, "CO2 = \t%5.1f µg/m^3", co2);
+	ESP_LOGI(TAG, "NOx = \t%d ppb\n", srawNox);
 }
 
 void setup() {
@@ -106,6 +121,7 @@ void setup() {
 	rtc_loop();
 	module_check();
 	display_setup();
+	print_values();
 	mqtt_publish();
 	ESP_LOGI(TAG, "setup done.");
 	gotosleep();
