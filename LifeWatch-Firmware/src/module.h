@@ -5,7 +5,7 @@
 
 #include "SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h" //PM
 #include "Adafruit_AGS02MA.h"  //TVOC
-#include "SensirionI2CScd4x.h" //CO2
+#include "SensirionI2cScd4x.h" //CO2
 #include "SensirionI2CSgp41.h" //NOx
 
 /*  Messwerte  */
