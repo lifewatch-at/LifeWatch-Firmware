@@ -7,11 +7,12 @@
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include "Bold95.h"
 #include "smileys.h"
+#include "pins.h"
 
 class myDisplay
 {
 public:
-  void init();
+  void init(bool initial);
   void deepSleep();
   void refresh();
   void printLayout();

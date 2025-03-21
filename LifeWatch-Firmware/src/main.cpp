@@ -49,7 +49,7 @@ inline void rtc_loop() {
 }
 
 inline void display_setup() {
-	_display.init();
+	_display.init(wake_cnt==0);
 
 	char secc_1[15];
 	sprintf(secc_1, "%3.1f deg C", temp);

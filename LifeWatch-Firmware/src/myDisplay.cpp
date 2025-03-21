@@ -3,7 +3,7 @@
 #ifdef DISPLAY_750
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> 
 #ifdef ARDUINO_ESP32S2_DEV
-display(GxEPD2_750_T7(10, 14, 21, 33)); //CS, DC, RST, BUSY - ESP32-S2
+display(GxEPD2_750_T7(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY)); // ESP32-S2
 #else
 display(GxEPD2_750_T7(5, 27, 26, 25)); //CS, DC, RST, BUSY - ESP32
 #endif
@@ -14,7 +14,7 @@ display(GxEPD2_750_T7(5, 27, 26, 25)); //CS, DC, RST, BUSY - ESP32
 #ifndef DISPLAY_750
 GxEPD2_BW <GxEPD2_1330_GDEM133T91, GxEPD2_1330_GDEM133T91::HEIGHT / 2>
 #ifdef ARDUINO_ESP32S2_DEV
-display(GxEPD2_1330_GDEM133T91(10, 14, 21, 33)); // ESP32-S2
+display(GxEPD2_1330_GDEM133T91(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY)); // ESP32-S2
 #else
 display(GxEPD2_1330_GDEM133T91(5, 27, 26, 25)); // ESP32
 #endif
@@ -26,13 +26,12 @@ display(GxEPD2_1330_GDEM133T91(5, 27, 26, 25)); // ESP32
 SPIClass spi(HSPI);
 #endif
 
-void myDisplay::init() {
+void myDisplay::init(bool initial) {
 #ifdef ARDUINO_ESP32S2_DEV
-  spi.begin(12, -1, 11, 5);
-  display.init(115200, true, 10, false, spi, SPISettings(500000, MSBFIRST, SPI_MODE0));
-  pinMode(5, OUTPUT);
+  spi.begin(EPD_SCK, -1, EPD_DIN, EPD_CS);
+  display.init(115200, initial, 10, false, spi, SPISettings(1e7, MSBFIRST, SPI_MODE0));
 #else
-  display.init(115200, true, 2, false);
+  display.init(115200, initial, 2, false);
 #endif
 }
 
@@ -41,9 +40,9 @@ const char *name_space_3, const float value_space_3, const float min_space_3, co
 const char *name_space_4, const float value_space_4, const float min_space_4, const float max_space_4,
 const char *name_space_5, const float value_space_5, const float min_space_5, const float max_space_5)
 {
+  display.setPartialWindow(0, 0, display.width(), display.height());
   display.setRotation(0);
   display.setTextColor(GxEPD_BLACK);
-
   char time[6];
 
   if (hour < 10 && min >= 10) {
