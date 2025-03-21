@@ -9,12 +9,13 @@
 
 class Telemetry {
 public:
-    Telemetry(String id, String name, int bat) : id(id), name(name), bat(bat) {};
+    Telemetry(String id, String name, time_t timestamp, int bat) : id(id), name(name), timestamp(timestamp), bat(bat) {};
 
     JsonDocument toJSON();
 private:
     String id;
     String name;
+    time_t timestamp;
     int bat;
 };
 

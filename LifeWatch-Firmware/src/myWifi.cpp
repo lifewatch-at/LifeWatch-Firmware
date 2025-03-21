@@ -53,6 +53,11 @@ bool MyWiFi::init() {
 	checkCfg();
 #endif
 
+	if (isConnected()) {
+		ESP_LOGW(TAG, "WiFi already connected!");
+		return true;
+	}
+
 	// Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
 	if (getMode() != WIFI_OFF) {
 		ESP_LOGW(TAG, "Wifi wasn't off!");
@@ -125,10 +130,6 @@ time_t MyWiFi::getTime() {
 	struct tm timeinfo;
 
 	ESP_LOGI(TAG, "Retrieving time...");
-
-	if (getMode() != WIFI_STA) {
-		init();
-	}
 
 	configTzTime(_setup.getParam(PARAM_TZ_OFFSET).c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
 

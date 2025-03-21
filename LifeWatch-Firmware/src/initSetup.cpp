@@ -19,6 +19,7 @@ const char* PARAMS[] {
 
 const char* TAGS = "initSetup";
 const int nrofParams = sizeof(PARAMS) / sizeof(PARAMS[0]);
+volatile bool done = false;
 
 bool fsinit() {
 	if (!LittleFS.begin(true)){
@@ -82,9 +83,12 @@ String processor(const String& var){
 	return String();
 }
 
-void Setup::init() {
-	volatile bool done = false;
-	
+void Setup::init() {	
+	if (isRunning) {
+		ESP_LOGW(TAGS, "Setup webserver already running!");
+		return;
+	}
+
 	// Initialize LittleFS
 	if (!fsinit()) {
 		ESP_LOGE(TAGS, "ERROR: setup break");
@@ -134,31 +138,34 @@ void Setup::init() {
 	});
 
 	// finish initial setup routine on pressing "Done" button
-	server.on("/done", HTTP_GET, [&done] (AsyncWebServerRequest *request) {
+	server.on("/done", HTTP_GET, [] (AsyncWebServerRequest *request) {
 		ESP_LOGI(TAGS, "Received setup done...");
 		done = true;
 	});
 
 	server.on("/reset", HTTP_GET, [] (AsyncWebServerRequest *request) {
 		ESP_LOGI(TAGS, "Received reset input...");
+		LittleFS.remove("/credentials.json");
 	});
 
 	server.onNotFound(notFound);
 	server.begin();
-	ESP_LOGI(TAGS, "Webserver started on %s", _wifi.softAPIP().toString());
+	isRunning = true;
+	ESP_LOGI(TAGS, "Webserver started on %s", _wifi.softAPIP().toString().c_str());
+}
 
-	unsigned long lastms = millis();
-	while (1) {
-		if (millis()-lastms >= 10000) {
-			ESP_LOGV(TAGS, "setup loop");
-			lastms = millis();
-		}
-		if (done) {
-			server.end();
-			_wifi.mode(WIFI_OFF);
-			break;
-		}
+bool Setup::isDone() {
+	if (isRunning && done) {
+		server.end();
+		_wifi.mode(WIFI_OFF);
+		isRunning = false;
+		ESP_LOGI(TAGS, "Webserver stopped.");
+		return true;
 	}
+	if (!isRunning) {		// pass if setup interface wasnt required
+		return true;
+	}
+	return false;
 }
 
 String Setup::getParam(String param) {

@@ -22,7 +22,7 @@
 
 class MQTT {
 public:
-	void connect();
+	bool connect();
 	void send(Device device);
 	void loop();
 	

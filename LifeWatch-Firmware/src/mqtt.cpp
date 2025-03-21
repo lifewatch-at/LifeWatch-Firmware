@@ -16,13 +16,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 	// TODO: parse the received json document
 }
 
-void MQTT::connect() {
+bool MQTT::connect() {
 	unsigned long lastms = millis();
 
 	while (mdns_init()!=ESP_OK) {
 		if (millis()-lastms >= 1000) {
 			ESP_LOGE(TAG, "Timeout: failed starting mDNS client");
-			break;
+			return false;
 		}
 	}
 	
@@ -37,7 +37,7 @@ void MQTT::connect() {
 
 		if (millis()-lastms >= MDNS_TIMEOUT) {
 			ESP_LOGE(TAG, "Timeout: failed resolving hostname");
-			return;		// no need for trying to connect to nothing
+			return false;		// no need for trying to connect to nothing
 		}
 	}
 
@@ -54,15 +54,12 @@ void MQTT::connect() {
 			ESP_LOGI(TAG, "Connected to MQTT broker");
 		} else {
 			ESP_LOGE(TAG, "Failed to connect to MQTT broker, rc=%d", mqtt_client.state());
-		}
-
-		if (millis()-lastms >= MQTT_TIMEOUT) {
-			ESP_LOGE(TAG, "Timeout: MQTT");
-			break;
+			return false;
 		}
 	}
 
 	mqtt_client.subscribe(strcat(subTopic, client_id));
+	return true;
 }
 
 

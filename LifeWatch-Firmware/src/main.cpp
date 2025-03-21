@@ -17,45 +17,47 @@ BQ25792 charger(PWR_INT, -1);
 const char* TAG = "main";
 
 RTC_DATA_ATTR uint32_t wake_cnt = 0;
+volatile bool waaaiit;
 
 
-inline void wifi_loop() {
-	while (1) {
-		if (_wifi.init()) {
-			break;
-		}
-		else {
-			_setup.init();
-		}
-	}
+void delay_loop_while_setup_isnt_done_ISR() {
+	waaaiit = false;
 }
 
-inline void rtc_loop() {
+bool wifi_routine() {
+	if (!_wifi.init()) {
+		_setup.init();
+		return false;
+	}
+	return true;
+}
+
+inline void rtc_routine() {
     if(!rtc.begin(&Wire)) {
         ESP_LOGE(TAG, "Couldn't find RTC");
         return;
     }
 	setenv("TZ", _setup.getParam(PARAM_TZ_OFFSET).c_str(), 1);
 	if (wake_cnt == 0) {
+		wifi_routine();
 		rtc.init();
 	}
 	else {
 		rtc.clearAlarm(2);
 		if (rtc.check()) {
+			wifi_routine();
 			rtc.sync();
 		}
 	}
-	ESP_LOGI(TAG, "localtime: %2d:%2d", rtc.getH(), rtc.getM());
+	_display.updateTime(rtc.getH(), rtc.getM(), true);
 }
 
-inline void display_setup() {
-	_display.init(wake_cnt==0);
-
+inline void display_refresh() {
 	char secc_1[15];
 	sprintf(secc_1, "%3.1f deg C", temp);
 	char secc_2[15];
 	sprintf(secc_2, "%3.1f %rH", hum);
-	
+	// TODO: display add low battery symbol
 	_display.updateEverything(rtc.getH(), rtc.getM(), 
 								secc_1, secc_2, 
 								"CO", co_ppm, 0, 15,
@@ -74,8 +76,15 @@ inline void gotosleep() {
 }
 
 inline void mqtt_publish() {
-	mqtt.connect();
-	Telemetry tel(_wifi.getID(), _setup.getParam(PARAM_NAME), constrain(map(charger.getVBAT()*100,700,840,0,100),0,100));
+	if (!wifi_routine()) {return;}
+	if (!mqtt.connect()) {return;}
+	Telemetry tel
+	(	
+		_wifi.getID(),
+		_setup.getParam(PARAM_NAME),
+		rtc.now().unixtime(),
+		constrain(map(charger.getVBAT()*100,700,840,0,100),0,100)
+	);
 	Sensor temp_sensor (modules[0].name, temp  , modules[0].unit);
 	Sensor hum_sensor  (modules[1].name, hum   , modules[1].unit);
 	Sensor co2_sensor  (modules[2].name, co2   , modules[2].unit);
@@ -112,19 +121,26 @@ void print_values(void) {
 void setup() {
 	Serial.setDebugOutput(true);
 	Serial.begin(115200);
-	delay(2000);
-	ESP_LOGI(TAG, "setup started. wake count: %d", wake_cnt);
-	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
-	wifi_loop();
 	Wire.begin(MB_SDA, MB_SCL, 400000);
 	Wire1.begin(CB_SDA, CB_SCL, 400000);
-	rtc_loop();
-	module_check();
-	display_setup();
-	print_values();
-	mqtt_publish();
-	ESP_LOGI(TAG, "setup done.");
-	gotosleep();
+	delay(2000);												// temporary delay to make debugging easier
+	ESP_LOGI(TAG, "setup started. wake count: %d", wake_cnt);
+	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
+	_display.init(wake_cnt==0);
 }
 
-void loop() {}
+void loop() {
+	rtc_routine();
+	module_check();
+	display_refresh();
+	print_values();
+	mqtt_publish();
+	
+	if (_setup.isDone()) {gotosleep();}
+	else {
+		attachInterrupt(digitalPinToInterrupt(RTC_INT), delay_loop_while_setup_isnt_done_ISR, FALLING);
+		waaaiit = true;
+		// TODO: display add symbol for AP/setup mode
+		while (waaaiit) {}
+	}
+}

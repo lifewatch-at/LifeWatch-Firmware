@@ -22,9 +22,11 @@ public:
     void init();
     String getParam(String param);
     void print();
+    bool isDone();
 private:
     const char* password = SETUP_PWD;
     IPAddress apip = IPAddress(10,0,0,1);
+    bool isRunning = false;
 };
 
 extern Setup _setup;

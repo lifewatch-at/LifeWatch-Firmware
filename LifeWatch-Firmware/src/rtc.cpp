@@ -2,6 +2,7 @@
 #include "rtc.h"
 
 void RTC::init() {
+    ESP_LOGI(TAG, "Initialising RTC...");
     disable32K();
     writeSqwPinMode(DS3231_OFF);
     
