@@ -23,13 +23,13 @@ JsonDocument Device::toJSON() {
     doc["telemetry"] = telemetry->toJSON();
 
     JsonArray entities = doc["entities"].to<JsonArray>();
-    for (Sensor *sensor : _sensors) {
-        entities.add(sensor->toJSON());
+    for (Sensor sensor : _sensors) {
+        entities.add(sensor.toJSON());
     }
 
     return doc;
 }
 
-void Device::add(Sensor *sensor) {
+void Device::add(Sensor sensor) {
     _sensors.push_back(sensor);
 }

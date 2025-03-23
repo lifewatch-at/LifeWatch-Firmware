@@ -13,6 +13,7 @@
 
 myDisplay _display;
 BQ25792 charger(PWR_INT, -1);
+Device device;
 
 const char* TAG = "main";
 
@@ -93,24 +94,7 @@ inline void mqtt_publish() {
 		rtc.now().unixtime(),
 		charger.getPercentage()
 	);
-	Sensor temp_sensor (modules[0].name, temp  , modules[0].unit);
-	Sensor hum_sensor  (modules[1].name, hum   , modules[1].unit);
-	Sensor co2_sensor  (modules[2].name, co2   , modules[2].unit);
-	Sensor co_sensor   (modules[4].name, co_ppm, modules[4].unit);
-	Sensor pm_sensor   (modules[5].name, pm2_5 , modules[5].unit);
-	Sensor tvoc_sensor (modules[6].name, (float)tvoc  , modules[6].unit);
-	Sensor nox_sensor  (modules[8].name, (float)srawNox, modules[8].unit);
-	Sensor noise_sensor(modules[9].name, noise_db, modules[9].unit);
-	Device device;
 	device.telemetry = &tel;
-	device.add(&temp_sensor );
-	device.add(&hum_sensor  );
-	device.add(&co2_sensor  );
-	device.add(&co_sensor   );
-	device.add(&pm_sensor   );
-	device.add(&tvoc_sensor );
-	device.add(&nox_sensor  );
-	device.add(&noise_sensor);
 	mqtt.send(device);
 	mqtt.loop();
 }
@@ -139,7 +123,7 @@ void setup() {
 
 void loop() {
 	rtc_routine();
-	module_check();
+	read_modules(&device);
 	display_refresh();
 	print_values();
 	mqtt_publish();
