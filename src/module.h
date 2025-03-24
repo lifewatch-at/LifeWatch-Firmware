@@ -11,6 +11,7 @@
 
 const char* TAGM = "modules";
 
+// device addresses
 #define SHT41_ADDRESS	0x44
 #define SCD41_ADDRESS	0x62
 #define LMP91000_ADDR	0x48
@@ -20,31 +21,38 @@ const char* TAGM = "modules";
 #define SGP41_ADDRESS	0x59
 #define AGS02MA_ADDR	0x1A
 #define NOISE_ADDRESS	0x48
-#define SPEAKER_ADDR	0x4c
+#define SPKR_ADDRESS	0x4c
 
-// Command definitions (based on datasheet)
-#define CMD_START_PERIODIC_MEASUREMENT  0x21B1
-#define CMD_READ_MEASUREMENT            0xEC05
-#define CMD_STOP_PERIODIC_MEASUREMENT   0x3F86
+// module names
+#define TEMP_NAME	"Temperature"
+#define HUM_NAME	"Humidity"
+#define PM25_NAME	"PM"
+#define CO_NAME		"CO"
+#define CO2_NAME	"CO2"
+#define SPKR_NAME	"speaker"
+#define TVOC_NAME	"TVOC"
+#define LIGHT_NAME	"Brightness"
+#define NOX_NAME	"NOx"
+#define NOISE_NAME	"Noiselevel"
 
-/*  Messwerte  */
+// module units
+#define TEMP_UNIT	"°C"
+#define HUM_UNIT	"%"
+#define PM25_UNIT	"ppm"
+#define CO_UNIT		"ppm"
+#define CO2_UNIT	"µg/m^3"
+#define SPKR_UNIT	""
+#define TVOC_UNIT	"ppb"
+#define LIGHT_UNIT	"lux"
+#define NOX_UNIT	"ppb"
+#define NOISE_UNIT	"dB"
 
-float temp   = 666.6;
-float hum    = 666.6;
-float pm2_5  = 666.6;
-float co_ppm = 666.6;
-float co2    = 666.6;
 
-int noise_db   = 666.6;
-
-uint32_t tvoc    = 666;
-uint16_t srawNox = 666;
-
-/*  Sensor-Objekte  */
-
+// Sensor objects
 Adafruit_AGS02MA     ags;
 SFE_PARTICLE_SENSOR AirS;
 SensirionI2CSgp41  sgp41;
+
 
 void temp_read   (Sensor* sensor);
 void hum_read    (Sensor* sensor);
@@ -57,33 +65,26 @@ void light_read  (Sensor* sensor);
 void nox_read    (Sensor* sensor);
 void noise_read  (Sensor* sensor);
 
-bool nox_read_was_called     = false;
 
 struct module {
-  byte adr;
-  void (*func)(Sensor* sensor);
-  char name[15];
-  char unit[10];
+	byte adr;
+	void (*func)(Sensor* sensor);
 };
-
-// enum NAMES{
-// temp, hum, co2, speaker, co, pm, tvoc, light, nox, noise
-// };
 
 const module modules[] = {
-	{SHT41_ADDRESS	, temp_read	, "Temperature"   , "gr C"   }, // temp
-	{SHT41_ADDRESS	, hum_read		, "Humidity"      , "%"      }, // hum
-	{SCD41_ADDRESS	, co2_read    , "CO2"           , "µg/m^3" }, // CO2
-	{SPEAKER_ADDR	, speaker_read	, "speak"         , "\n"     }, // speaker
-	{ADS1115_ADDR	, co_read		, "CO"            , "ppm"    }, // CO
-	{GCJA5_ADDRESS	, pm_read		, "PM"            , "ppm"    }, // PM
-	{AGS02MA_ADDR	, tvoc_read	, "TVOC"          , "ppb"    }, // TVOC
-	{VEML6031_ADDR	, light_read	, "Lightintensity", "Lux"    }, // light
-	{SGP41_ADDRESS	, nox_read		, "NOx"           , "ppb"    }, // NOx+
-	{NOISE_ADDRESS	, noise_read	, "Noiselevel"    , "dB"     }
+	{SHT41_ADDRESS	, temp_read		},
+	{SHT41_ADDRESS	, hum_read		},
+	{SCD41_ADDRESS	, co2_read		},
+	{SPKR_ADDRESS	, speaker_read	},
+	{ADS1115_ADDR	, co_read		},
+	{GCJA5_ADDRESS	, pm_read		},
+	{AGS02MA_ADDR	, tvoc_read		},
+	{VEML6031_ADDR	, light_read	},
+	{SGP41_ADDRESS	, nox_read		},
+	{NOISE_ADDRESS	, noise_read	}
 };
 
-// TODO restlichen Module hinzu fügen
+// TODO: restliche Module hinzufügen
 
 
 bool adrTest(byte adr) {
@@ -102,15 +103,12 @@ void read_modules(Device *device) {
 			Sensor sensor;
 			modules[i].func(&sensor);
 			device->add(sensor);
-			ESP_LOGI(TAGM, "Modul gefunden:\t%s", modules[i].name);
 		}
 	}
 }   
 
 
-
-/* ------------- module ------------- */
-
+// ************************ read modules ************************* //
 
 void noise_read(Sensor* sensor) {
 	Wire1.setClock(80000);
@@ -119,18 +117,21 @@ void noise_read(Sensor* sensor) {
 	Wire1.endTransmission();
 	Wire1.requestFrom(0x48, 1);
 	delay(50);
-//  noise_db = (int)Wire1.read();
-	sensor->fill("Noiselevel", (int)Wire1.read(), "dB");
+	sensor->fill(NOISE_NAME, (int)Wire1.read(), NOISE_UNIT);
 	Wire.setClock(400000);
 }
 
+
+float hum = 66.6;
+
 void temp_read(Sensor* sensor) {
-	Wire1.beginTransmission(0x44);
+	float temp = 66.6;
+	Wire1.beginTransmission(SHT41_ADDRESS);
 	Wire1.write(0xFD);
 	Wire1.endTransmission();
 	delay(20);
 
-	Wire1.requestFrom(0x44, 6);  // 6 Byte = T_MSB, T_LSB, T_CRC, H_MSB, H_LSB, H_CRC
+	Wire1.requestFrom(SHT41_ADDRESS, 6);  // 6 Byte = T_MSB, T_LSB, T_CRC, H_MSB, H_LSB, H_CRC
 	if (Wire1.available() == 6) {
 		uint16_t rawTemp = (Wire1.read() << 8) | Wire1.read(); Wire1.read(); // + CRC ignoriert
 		uint16_t rawHum  = (Wire1.read() << 8) | Wire1.read(); Wire1.read();
@@ -140,8 +141,9 @@ void temp_read(Sensor* sensor) {
 		hum  = 100 * ((float)rawHum / 65535.0);
 	}
 	Wire1.endTransmission();
-	sensor->fill("Temperature", temp, "gr C");
+	sensor->fill(TEMP_NAME, temp, TEMP_UNIT);
 }
+
 
 void hum_read(Sensor* sensor) {
 	/*
@@ -159,8 +161,15 @@ void hum_read(Sensor* sensor) {
 
 	hum  = humidity.relative_humidity;
 	*/
-	sensor->fill("Humidity", hum, "%");
+	sensor->fill(HUM_NAME, hum, HUM_UNIT);
 }
+
+
+// Command definitions (based on datasheet)
+#define CMD_START_PERIODIC_MEASUREMENT  0x21B1
+#define CMD_READ_MEASUREMENT            0xEC05
+#define CMD_STOP_PERIODIC_MEASUREMENT   0x3F86
+
 
 void co2_read(Sensor* sensor) {
 	// Start periodic measurement
@@ -192,14 +201,15 @@ void co2_read(Sensor* sensor) {
 		float _temperature = -45.0 + 175.0 * ((float)temperature_raw / 65535.0);
 		float _humidity = 100.0 * ((float)humidity_raw / 65535.0);
 
-		co2 = co2_raw;//(float)(co2_raw * (44.01*1000/24,45));
+		sensor->fill(CO2_NAME, co2_raw, CO2_UNIT);
 	} else {
 		ESP_LOGW(TAGM, "Failed to read data from SCD41.");
 	}
 }
 
-void speaker_read(Sensor* sensor) {
 
+void speaker_read(Sensor* sensor) {
+	sensor->fill(SPKR_NAME, 0, SPKR_UNIT);
 }
 
 
@@ -209,7 +219,6 @@ void speaker_read(Sensor* sensor) {
 #define ZERO_CURRENT_NA     0.0
 #define ADC_LSB_V           0.000125  // für ±4.096V
 
-float voltage = 0, current_nA = 0;
 
 void writeLMP(uint8_t reg, uint8_t value) {
 	Wire1.beginTransmission(LMP91000_ADDR);
@@ -218,6 +227,7 @@ void writeLMP(uint8_t reg, uint8_t value) {
 	Wire1.endTransmission();
 	delay(10);
 }
+
 
 int16_t readADS1115() {
 	// 1. Config-Register setzen (Single-Ended AIN0, GAIN=1, 128 SPS)
@@ -240,7 +250,8 @@ int16_t readADS1115() {
 	  result = (Wire1.read() << 8) | Wire1.read();
 	}
 	return result;
-  }
+}
+
 
 void co_read(Sensor* sensor) {
 	Wire1.setClock(100000);
@@ -251,19 +262,21 @@ void co_read(Sensor* sensor) {
 
 	int16_t adc = readADS1115();
 
-	voltage = adc * ADC_LSB_V;
-	current_nA = ((voltage / RTIA_OHMS) / RL_OHMS) * 1e9;
-	co_ppm = (current_nA - ZERO_CURRENT_NA) / SENSITIVITY_NA_PPM;
-
+	float voltage = adc * ADC_LSB_V;
+	float current_nA = ((voltage / RTIA_OHMS) / RL_OHMS) * 1e9;
+	float co_ppm = (current_nA - ZERO_CURRENT_NA) / SENSITIVITY_NA_PPM;
+	sensor->fill(CO_NAME, co_ppm, CO_UNIT);
 	Wire1.setClock(400000);
 }
+
 
 void pm_read(Sensor* sensor) {
 	if (AirS.begin(Wire1) == false) {
 		Serial.println("\nERROR - pm_read()");
 	}
-	pm2_5 = AirS.getPM2_5();
+	sensor->fill(PM25_NAME, AirS.getPM2_5(), PM25_UNIT);
 }
+
 
 void tvoc_read(Sensor* sensor) {   
 	// Wire1.setClock(20000);
@@ -293,9 +306,13 @@ void tvoc_read(Sensor* sensor) {
 	// Wire1.setClock(400000);
 }
 
+
 void light_read(Sensor* sensor) {
 
 }
+
+
+bool nox_read_was_called = false;
 
 void nox_read(Sensor* sensor) {
 	uint16_t conditioning_s = 3; //10;
@@ -318,11 +335,12 @@ void nox_read(Sensor* sensor) {
 	}
 	
 	// Read Measurement
+	uint16_t srawNox;
 	error = sgp41.measureRawSignals(defaultRh, defaultT, srawVoc, srawNox);
 
 	if (error) {
 		Serial.println("\nERROR - nox_read()");
 		return;
 	}
-	srawNox /= 1000;
+	sensor->fill(NOX_NAME, srawNox/1000, NOX_UNIT);
 }
