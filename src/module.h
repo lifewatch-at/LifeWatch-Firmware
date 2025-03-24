@@ -4,10 +4,8 @@
 #include <Wire.h>
 #include <json.h>
 
-#include "SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h" //PM
-#include "Adafruit_AGS02MA.h"  //TVOC
-#include "SensirionI2cScd4x.h" //CO2
-#include "SensirionI2CSgp41.h" //NOx
+#include "SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h"	// PM
+#include "SensirionI2CSgp41.h"									// NOx
 
 const char* TAGM = "modules";
 
@@ -49,26 +47,25 @@ const char* TAGM = "modules";
 
 
 // Sensor objects
-Adafruit_AGS02MA     ags;
-SFE_PARTICLE_SENSOR AirS;
-SensirionI2CSgp41  sgp41;
+SFE_PARTICLE_SENSOR	gcja5;
+SensirionI2CSgp41 	sgp41;
 
 
-void temp_read   (Sensor* sensor);
-void hum_read    (Sensor* sensor);
-void co2_read    (Sensor* sensor);
-void speaker_read(Sensor* sensor);
-void co_read     (Sensor* sensor);
-void pm_read     (Sensor* sensor);
-void tvoc_read   (Sensor* sensor);
-void light_read  (Sensor* sensor);
-void nox_read    (Sensor* sensor);
-void noise_read  (Sensor* sensor);
+void temp_read   (Sensor& sensor);
+void hum_read    (Sensor& sensor);
+void co2_read    (Sensor& sensor);
+void speaker_read(Sensor& sensor);
+void co_read     (Sensor& sensor);
+void pm_read     (Sensor& sensor);
+void tvoc_read   (Sensor& sensor);
+void light_read  (Sensor& sensor);
+void nox_read    (Sensor& sensor);
+void noise_read  (Sensor& sensor);
 
 
 struct module {
 	byte adr;
-	void (*func)(Sensor* sensor);
+	void (*func)(Sensor& sensor);
 };
 
 const module modules[] = {
@@ -97,12 +94,12 @@ bool adrTest(byte adr) {
   return true; 
 }
 
-void read_modules(Device *device) {
+void read_modules(Device& device) {
 	for (int i = 0; i < (sizeof(modules) / sizeof(*modules)); i++) {
 		if (adrTest(modules[i].adr)) {
 			Sensor sensor;
-			modules[i].func(&sensor);
-			device->add(sensor);
+			modules[i].func(sensor);
+			device.add(sensor);
 		}
 	}
 }   
@@ -110,21 +107,21 @@ void read_modules(Device *device) {
 
 // ************************ read modules ************************* //
 
-void noise_read(Sensor* sensor) {
-	Wire1.setClock(80000);
-	Wire1.beginTransmission(0x48);
+void noise_read(Sensor& sensor) {
+	Wire1.setClock(100000);
+	Wire1.beginTransmission(NOISE_ADDRESS);
 	Wire1.write(0x0A);
 	Wire1.endTransmission();
-	Wire1.requestFrom(0x48, 1);
+	Wire1.requestFrom(NOISE_ADDRESS, 1);
 	delay(50);
-	sensor->fill(NOISE_NAME, (int)Wire1.read(), NOISE_UNIT);
+	sensor.fill(NOISE_NAME, (int)Wire1.read(), NOISE_UNIT);
 	Wire.setClock(400000);
 }
 
 
 float hum = 66.6;
 
-void temp_read(Sensor* sensor) {
+void temp_read(Sensor& sensor) {
 	float temp = 66.6;
 	Wire1.beginTransmission(SHT41_ADDRESS);
 	Wire1.write(0xFD);
@@ -141,17 +138,17 @@ void temp_read(Sensor* sensor) {
 		hum  = 100 * ((float)rawHum / 65535.0);
 	}
 	Wire1.endTransmission();
-	sensor->fill(TEMP_NAME, temp, TEMP_UNIT);
+	sensor.fill(TEMP_NAME, temp, TEMP_UNIT);
 }
 
 
-void hum_read(Sensor* sensor) {
+void hum_read(Sensor& sensor) {
 	/*
 	Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 	sensors_event_t humidity, temperature;
 
 	if (! sht4.begin()) {
-	    Serial.println("\nERROR - hum_read()");
+		Serial.println("\nERROR - hum_read()");
 	}
 
 	sht4.setPrecision(SHT4X_HIGH_PRECISION);
@@ -161,7 +158,7 @@ void hum_read(Sensor* sensor) {
 
 	hum  = humidity.relative_humidity;
 	*/
-	sensor->fill(HUM_NAME, hum, HUM_UNIT);
+	sensor.fill(HUM_NAME, hum, HUM_UNIT);
 }
 
 
@@ -171,8 +168,8 @@ void hum_read(Sensor* sensor) {
 #define CMD_STOP_PERIODIC_MEASUREMENT   0x3F86
 
 
-void co2_read(Sensor* sensor) {
-	// Start periodic measurement
+void co2_read(Sensor& sensor) {
+	// Start periodic measurement									// ? why periodic measurement? use single shot instead
 	Wire1.beginTransmission(SCD41_ADDRESS);
 	Wire1.write(CMD_START_PERIODIC_MEASUREMENT >> 8);   // Send MSB
 	Wire1.write(CMD_START_PERIODIC_MEASUREMENT & 0xFF); // Send LSB
@@ -201,15 +198,15 @@ void co2_read(Sensor* sensor) {
 		float _temperature = -45.0 + 175.0 * ((float)temperature_raw / 65535.0);
 		float _humidity = 100.0 * ((float)humidity_raw / 65535.0);
 
-		sensor->fill(CO2_NAME, co2_raw, CO2_UNIT);
+		sensor.fill(CO2_NAME, co2_raw, CO2_UNIT);
 	} else {
 		ESP_LOGW(TAGM, "Failed to read data from SCD41.");
 	}
 }
 
 
-void speaker_read(Sensor* sensor) {
-	sensor->fill(SPKR_NAME, 0, SPKR_UNIT);
+void speaker_read(Sensor& sensor) {
+	sensor.fill(SPKR_NAME, 0, SPKR_UNIT);
 }
 
 
@@ -253,7 +250,7 @@ int16_t readADS1115() {
 }
 
 
-void co_read(Sensor* sensor) {
+void co_read(Sensor& sensor) {
 	Wire1.setClock(100000);
 	writeLMP(0x01, 0x00);  // Unlock
 	writeLMP(0x12, 0x03);  // MODECN: 3-Elektroden-Modus
@@ -265,61 +262,57 @@ void co_read(Sensor* sensor) {
 	float voltage = adc * ADC_LSB_V;
 	float current_nA = ((voltage / RTIA_OHMS) / RL_OHMS) * 1e9;
 	float co_ppm = (current_nA - ZERO_CURRENT_NA) / SENSITIVITY_NA_PPM;
-	sensor->fill(CO_NAME, co_ppm, CO_UNIT);
+	sensor.fill(CO_NAME, co_ppm, CO_UNIT);
 	Wire1.setClock(400000);
 }
 
 
-void pm_read(Sensor* sensor) {
-	if (AirS.begin(Wire1) == false) {
-		Serial.println("\nERROR - pm_read()");
+void pm_read(Sensor& sensor) {
+	if (!gcja5.begin(Wire1)) {
+		ESP_LOGE(TAGM, "ERROR - pm_read()");
 	}
-	sensor->fill(PM25_NAME, AirS.getPM2_5(), PM25_UNIT);
+	sensor.fill(PM25_NAME, gcja5.getPM2_5(), PM25_UNIT);
 }
 
 
-void tvoc_read(Sensor* sensor) {   
-	// Wire1.setClock(20000);
+void tvoc_read(Sensor& sensor) {   
+	Wire1.setClock(20000);
 
-	// Wire1.beginTransmission(0x1A);
-	// Wire1.write(0x00);  // Messung starten
-	// Wire1.endTransmission();
+	Wire1.beginTransmission(0x1A);
+	Wire1.write(0x00);  // Messung starten
+	Wire1.endTransmission();
 
-	// delay(150);
+	delay(150);
 
-	// Wire1.requestFrom(0x1A, 4);
+	Wire1.requestFrom(0x1A, 4);
 
-	// if (Wire1.available() < 4) {
-	//     Serial.println("I2C Read Error! - TVOC");
-	// }
+	if (Wire1.available() < 4) {
+		Serial.println("I2C Read Error! - TVOC");
+	}
 
-	// uint16_t gasRaw   = (Wire1.read() << 8) | Wire1.read();   // Gas Resistance
-	// // float gasKOhms = gasRaw / 1000.0;  // laut Datenblatt Umrechnung in kOhm
-	// uint16_t tvocRaw  = (Wire1.read() << 8) | Wire1.read();  // TVOC
+	uint16_t gasRaw   = (Wire1.read() << 8) | Wire1.read();   // Gas Resistance
+	// float gasKOhms = gasRaw / 1000.0;  // laut Datenblatt Umrechnung in kOhm
+	uint16_t tvocRaw  = (Wire1.read() << 8) | Wire1.read();  // TVOC
 
-	// if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
-	//     Wire1.setClock(400000);
-	//     return;
-	// }
+	if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
+		Wire1.setClock(400000);
+		return;
+	}
 
-	// tvoc = tvocRaw;
-	// Wire1.setClock(400000);
+	sensor.fill(TVOC_NAME, tvocRaw, TVOC_UNIT);
+	Wire1.setClock(400000);
 }
 
 
-void light_read(Sensor* sensor) {
+void light_read(Sensor& sensor) {
 
 }
 
 
-bool nox_read_was_called = false;
-
-void nox_read(Sensor* sensor) {
+void nox_read(Sensor& sensor) {
 	uint16_t conditioning_s = 3; //10;
 
-	if (!nox_read_was_called) {
-		sgp41.begin(Wire1);
-	}
+	sgp41.begin(Wire1);
 
 	uint16_t error;
 	char errorMessage[256];
@@ -342,5 +335,5 @@ void nox_read(Sensor* sensor) {
 		Serial.println("\nERROR - nox_read()");
 		return;
 	}
-	sensor->fill(NOX_NAME, srawNox/1000, NOX_UNIT);
+	sensor.fill(NOX_NAME, srawNox/1000, NOX_UNIT);
 }

@@ -99,6 +99,7 @@ inline void mqtt_publish() {
 	mqtt.loop();
 }
 
+/*
 void print_values(void) {
 	ESP_LOGI(TAG, "\ntemp =  %5.1f deg C", temp);
 	ESP_LOGI(TAG, "hum = \t%5.1f %rH", hum);
@@ -109,6 +110,7 @@ void print_values(void) {
 	ESP_LOGI(TAG, "CO2 = \t%5.1f µg/m^3", co2);
 	ESP_LOGI(TAG, "NOx = \t%d ppb\n", srawNox);
 }
+*/
 
 void setup() {
 	Serial.setDebugOutput(true);
@@ -123,9 +125,9 @@ void setup() {
 
 void loop() {
 	rtc_routine();
-	read_modules(&device);
+	read_modules(device);
 	display_refresh();
-	print_values();
+//	print_values();
 	mqtt_publish();
 	
 	if (_setup.isDone(rtcResync) || !_setup.isRunning()) {

@@ -28,6 +28,8 @@ public:
         this->value = value;
         this->unit = unit; 
     }
+    bool hasName(const char* _name) { if (name==_name) {return true;} return false;}
+    float getValue() {return value;}
     JsonDocument toJSON();
 private:
     String name;
@@ -39,8 +41,8 @@ class Device {
 public:
     JsonDocument toJSON();
     void add(Sensor sensor);
+    float getValueof(const char* sensor);
 
     Telemetry* telemetry;
     std::vector<Sensor> _sensors;
 };
-

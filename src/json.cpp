@@ -33,3 +33,12 @@ JsonDocument Device::toJSON() {
 void Device::add(Sensor sensor) {
     _sensors.push_back(sensor);
 }
+
+float Device::getValueof(const char* name) {
+    for (Sensor &sensor : _sensors) {
+        if (sensor.hasName(name)) {
+            return sensor.getValue();
+        }
+    }
+    return 0;
+}
