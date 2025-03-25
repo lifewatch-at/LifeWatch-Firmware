@@ -35,12 +35,165 @@ void myDisplay::init(bool initial) {
 #endif
 }
 
+void myDisplay::updateTextbox(const char *space_1, const char *space_2, bool show_battery_warning, bool show_WiFi, const char *display_ssid) {
+  
+  display.setPartialWindow(0, 0, display.width(), display.height() * 0.2);
+  display.setFont(&FreeMonoBold24pt7b);
+  
+  if (show_battery_warning && show_WiFi) {
+    do {
+      display.fillScreen(GxEPD_WHITE);
+      display.setCursor(display.width() * 0.14, display.height() * 0.14);
+      display.print(display_ssid);
+
+      display.drawXBitmap(display.width() * 0.85, display.height() * 0.06, Akkuwarnung, AKKUWARNUNG_WIDTH, AKKUWARNUNG_HEIGHT, GxEPD_BLACK);
+      display.drawXBitmap(display.width() * 0.02, 0, WiFi_symbol, WIFI_SYMBOL_WIDTH, WIFI_SYMBOL_HEIGHT, GxEPD_BLACK);
+    } while (display.nextPage());
+  }
+  else if (show_WiFi) {
+    do {
+      int x = display.width() * 0.123;
+      int16_t tbx, tby; uint16_t tbw, tbh;
+      int y;
+
+      display.fillScreen(GxEPD_WHITE);
+
+      display.drawXBitmap(display.width() * 0.02, 0, WiFi_symbol, WIFI_SYMBOL_WIDTH, WIFI_SYMBOL_HEIGHT, GxEPD_BLACK);
+
+      display.setCursor(display.width() * 0.14, display.height() * 0.14);
+      display.print(display_ssid);
+    } while (display.nextPage());
+  }
+  else if (show_battery_warning) {
+    do {
+      int x = display.width() * 0.123;
+      int16_t tbx, tby; uint16_t tbw, tbh;
+      int y;
+  
+      display.fillScreen(GxEPD_WHITE);
+
+      display.drawXBitmap(display.width() * 0.85, display.height() * 0.06, Akkuwarnung, AKKUWARNUNG_WIDTH, AKKUWARNUNG_HEIGHT, GxEPD_BLACK);
+  
+      /*Space_1*/
+      display.getTextBounds(space_1, 0, 0, &tbx, &tby, &tbw, &tbh);
+      x = ((display.width() *0.4  - tbw) / 2) - tbx;
+      y = ((display.height()*0.25*CORRECTION - tbh) / 2) - tby;
+      display.setCursor(x, display.height() * 0.14);
+      display.print(space_1);
+    } while (display.nextPage());
+  }
+  else {
+    do {
+      int x = display.width() * 0.123;
+      int16_t tbx, tby; uint16_t tbw, tbh;
+      int y;
+
+      display.fillScreen(GxEPD_WHITE);
+  
+      /*Space_1*/
+      display.getTextBounds(space_1, 0, 0, &tbx, &tby, &tbw, &tbh);
+      x = ((display.width() *0.4  - tbw) / 2) - tbx;
+      y = ((display.height()*0.25*CORRECTION - tbh) / 2) - tby;
+      display.setCursor(x, display.height() * 0.14);
+      display.print(space_1);
+  
+      /*Space_2*/
+      display.getTextBounds(space_2, 0, 0, &tbx, &tby, &tbw, &tbh);
+      x = ((display.width() *0.4 - tbw) / 2) - tbx + display.width()*0.6;
+      y = ((display.height()*0.25*CORRECTION - tbh) / 2) - tby;
+      display.setCursor(x, display.height() * 0.14);
+      display.print(space_2);
+    } while (display.nextPage());
+  }
+}
+
+void myDisplay::updateBars(
+  const char *name_space_3, const float value_space_3, const float min_space_3, const float max_space_3,
+  const char *name_space_4, const float value_space_4, const float min_space_4, const float max_space_4,
+  const char *name_space_5, const float value_space_5, const float min_space_5, const float max_space_5)
+{
+  display.setPartialWindow(0, display.height() * 0.55, display.width(), display.height() * 0.45);
+  display.setRotation(0);
+  display.setTextColor(GxEPD_BLACK);
+
+
+  do {
+    display.fillScreen(GxEPD_WHITE);
+
+    /*Balken*/
+    int x   = display.width() * 0.123; 
+    int w   = display.width() * 0.7563;
+    int h   = display.height()* 0.1042 * COR;
+    int y_1 = display.height()* 0.6042 * CORRECTION;
+    int y_2 = display.height()* 0.7292 * CORRECTION;
+    int y_3 = display.height()* 0.8542 * CORRECTION;
+
+    display.fillRect(x    , y_1    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_1 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    display.fillRect(x    , y_2    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_2 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    display.fillRect(x    , y_3    , w     , h     , GxEPD_BLACK);
+    display.fillRect(x + 5, y_3 + 5, w - 10, h - 10, GxEPD_WHITE);
+
+    /*Smileys*/
+    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
+
+    /*common Space 1 - 5*/
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    int y;
+
+    display.setFont(&FreeMonoBold24pt7b);
+
+    /*common Space 3 - 5*/
+    uint16_t new_w;
+    bool unter_haelfte;
+
+    /*Space_3*/
+    unter_haelfte = !((((max_space_3 - min_space_3) / 2) + min_space_3) > value_space_3); 
+    new_w = map(value_space_3, min_space_3, max_space_3, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
+
+    display.getTextBounds(name_space_3, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.61875*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.61875*CORRECTION + tbh);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_3);
+
+    /*Space_4*/
+    unter_haelfte = !((((max_space_4 - min_space_4) / 2) + min_space_4) > value_space_4); 
+    new_w = map(value_space_4, min_space_4, max_space_4, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
+    display.getTextBounds(name_space_4, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.74375*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.74375*CORRECTION + tbh+2);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_4);
+
+    /*Space_5*/
+    unter_haelfte = !((((max_space_5 - min_space_5) / 2) + min_space_5) > value_space_5); 
+    new_w = map(value_space_5, min_space_5, max_space_5, 0, display.width()*0.7563-20 /*display.width()*0.725*/);
+    new_w = constrain(new_w, 0, (display.width()*0.7563)-20);
+    display.getTextBounds(name_space_5, 0, 0, &tbx, &tby, &tbw, &tbh);
+
+    display.fillRect(display.width()*0.1375, display.height()*0.86875*CORRECTION, new_w, display.height()*0.075*COR, GxEPD_BLACK);
+    display.setCursor(display.width()*0.14625 + (unter_haelfte ? 0 : display.width()*0.725 - tbw - 4), display.height()*0.86875*CORRECTION + tbh+2);
+    display.setTextColor(unter_haelfte ? GxEPD_WHITE : GxEPD_BLACK);
+    display.print(name_space_5);
+
+  } while (display.nextPage());
+}
+
 void myDisplay::updateEverything(int hour, int min, const char* space_1, const char* space_2,
 const char *name_space_3, const float value_space_3, const float min_space_3, const float max_space_3,
 const char *name_space_4, const float value_space_4, const float min_space_4, const float max_space_4,
 const char *name_space_5, const float value_space_5, const float min_space_5, const float max_space_5)
 {
-  display.setPartialWindow(0, 0, display.width(), display.height());
+  display.setFullWindow();
   display.setRotation(0);
   display.setTextColor(GxEPD_BLACK);
   char time[6];
@@ -154,119 +307,9 @@ const char *name_space_5, const float value_space_5, const float min_space_5, co
   } while (display.nextPage());
 }
 
-void myDisplay::printLayout()
+void myDisplay::powerOff() 
 {
-  display.setRotation(0);
-  display.setFont(&bold_95);
-  display.setTextColor(GxEPD_BLACK);
-
-  /***   Time   ***/
-  int16_t tbx_time, tby_time; uint16_t tbw_time, tbh_time;
-  display.getTextBounds(mhTime, 0, 0, &tbx_time, &tby_time, &tbw_time, &tbh_time);
-  uint16_t x_time = ((display.width()  - tbw_time) / 2) - tbx_time;
-  uint16_t y_time = ((display.height()*CORRECTION - tbh_time) / 2) - tby_time - (display.height()*0.1); //0.0458
-
-  /***   Temp   ***/
-  display.setFont(&FreeMonoBold24pt7b);
-  int16_t tbx_temp, tby_temp; uint16_t tbw_temp, tbh_temp;
-  display.getTextBounds(_cTemp, 0, 0, &tbx_temp, &tby_temp, &tbw_temp, &tbh_temp);
-  int x_temp = ((display.width()* 0.4  - tbw_temp) / 2) - tbx_temp + display.width()*0.6;
-  int y_temp = ((display.height()*0.25*CORRECTION - tbh_temp) / 2) - tby_temp;
-
-  /***   Hum   ***/
-  int16_t tbx_hum, tby_hum; uint16_t tbw_hum, tbh_hum;
-  display.getTextBounds(_cHum, 0, 0, &tbx_hum, &tby_hum, &tbw_hum, &tbh_hum);
-  int x_hum = ((display.width()* 0.4  - tbw_hum) / 2) - tbx_hum;
-  int y_hum = ((display.height()*0.25*CORRECTION - tbh_hum) / 2) - tby_hum;
-
-  /***   CO2   ***/
-  int16_t tbx2_co2, tby2_co2; uint16_t tbw2_co2, tbh2_co2;
-  display.getTextBounds(CO2, 0, 0, &tbx2_co2, &tby2_co2, &tbw2_co2, &tbh2_co2);
-
-  /***   TVOC   ***/
-  int16_t tbx2_tvoc, tby2_tvoc; uint16_t tbw2_tvoc, tbh2_tvoc;
-  display.getTextBounds(TVOC, 0, 0, &tbx2_tvoc, &tby2_tvoc, &tbw2_tvoc, &tbh2_tvoc);
-
-  /***   CO   ***/
-  int16_t tbx2_co, tby2_co; uint16_t tbw2_co, tbh2_co;
-  display.getTextBounds(CO, 0, 0, &tbx2_co, &tby2_co, &tbw2_co, &tbh2_co);
-
-  display.setFullWindow();
-  display.firstPage();
-
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-
-    /***   print Time   ***/
-    display.setFont(&bold_95);
-    display.setCursor(x_time, y_time);
-    display.print(mhTime);
-
-    /***   print Temp   ***/
-    display.setFont(&FreeMonoBold24pt7b);
-    display.setCursor(x_temp, y_temp);
-    display.print(_cTemp);
-
-    /***   print Hum   ***/
-    display.setCursor(x_hum, y_hum);
-    display.print(_cHum);
-
-    /***   Balken  ***/
-    int x   = display.width() * 0.123; 
-    int w   = display.width() * 0.7563;
-    int h   = display.height()* 0.1042 * COR;
-    int y_1 = display.height()* 0.6042 * CORRECTION;
-    int y_2 = display.height()* 0.7292 * CORRECTION;
-    int y_3 = display.height()* 0.8542 * CORRECTION;
-
-    display.fillRect(x    , y_1    , w     , h     , GxEPD_BLACK);
-    display.fillRect(x + 5, y_1 + 5, w - 10, h - 10, GxEPD_WHITE);
-
-    display.fillRect(x    , y_2    , w     , h     , GxEPD_BLACK);
-    display.fillRect(x + 5, y_2 + 5, w - 10, h - 10, GxEPD_WHITE);
-
-    display.fillRect(x    , y_3    , w     , h     , GxEPD_BLACK);
-    display.fillRect(x + 5, y_3 + 5, w - 10, h - 10, GxEPD_WHITE);
-
-    /***   print CO2 text    ***/
-    display.setCursor(x + w - tbw2_co2 - 15, y_3 + tbh2_co2 + 8);
-    display.print(CO2);
-
-    /***   print TVOC text   ***/
-    display.setCursor(x + w - tbw2_tvoc - 15, y_2 + tbh2_tvoc + 8);
-    display.print(TVOC);
-
-    /***   print CO   text   ***/
-    display.setCursor(x + w - tbw2_co - 15, y_1 + tbh2_co + 8);
-    display.print(CO);
-
-    display.drawXBitmap(0,                   display.height()*0.67708*CORRECTION, happy_smiley_bits, SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
-    display.drawXBitmap(display.width()-100, display.height()*0.67708*CORRECTION, sad_smiley_bits,   SMILEY_WIDTH, SMILEY_HEIGHT, GxEPD_BLACK);
-  }
-  while (display.nextPage());
-
-  // delay(1000);
-
-  // updateSpace_1("hum:34.6%");
-  // updateSpace_2("temp:23.8C");
-  // updateSpace_3("CO2",   190,  100,  250);
-  // updateSpace_4("CO",     13,   10,   20);
-  // updateSpace_5("TVOC", 1445, 1000, 2000);
-  // updateTime(11, 33, true);
-
-  // BatteryWarning(true);
-  // delay(5000);
-  // BatteryWarning(false);
-  // delay(1000);
-  // display.refresh();
-
-  display.hibernate();
-}
-
-void myDisplay::deepSleep() 
-{
-  display.hibernate();
+  display.powerOff();
 }
 
 void myDisplay::printBox(bool isBlack, uint16_t x, uint16_t y, uint16_t w, 
@@ -425,12 +468,13 @@ void myDisplay::updateTime(int hour, int min, bool partial) {
     sprintf(time, "%d:%d", hour, min);
   }
 
-  display.setPartialWindow(display.width()*0.3125, display.height()*0.25*CORRECTION, 
-                           display.width()*0.375 , display.height()*0.25*COR);
+  display.setPartialWindow(display.width()*0.1, display.height()*0.25*COR /*CORRECTION*/, 
+                           display.width()*0.8 , display.height()*0.3*COR);
 
   display.setRotation(0);
   display.setFont(&bold_95);
   display.setTextColor(GxEPD_BLACK);
+  display.setTextSize(2);
 
   int16_t tbx_time, tby_time; uint16_t tbw_time, tbh_time;
   display.getTextBounds(time, 0, 0, &tbx_time, &tby_time, &tbw_time, &tbh_time);
@@ -444,6 +488,8 @@ void myDisplay::updateTime(int hour, int min, bool partial) {
     display.print(time);
   } 
   while (display.nextPage());
+
+  display.setTextSize(1);
   
   if (!partial) {display.refresh();}
 }

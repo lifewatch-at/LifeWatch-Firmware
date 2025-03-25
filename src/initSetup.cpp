@@ -84,7 +84,7 @@ String processor(const String& var){
 }
 
 void Setup::init() {	
-	if (isRunning) {
+	if (_isRunning) {
 		ESP_LOGW(TAGS, "Setup webserver already running!");
 		return;
 	}
@@ -150,7 +150,7 @@ void Setup::init() {
 
 	server.onNotFound(notFound);
 	server.begin();
-	isRunning = true;
+	_isRunning = true;
 	ESP_LOGI(TAGS, "Webserver started on %s", _wifi.softAPIP().toString().c_str());
 }
 
@@ -159,14 +159,14 @@ void Setup::init() {
  * @return true if setup was finished or if setup never ran. else false 
  */
 bool Setup::isDone() {
-	if (isRunning && done) {
+	if (_isRunning && done) {
 		server.end();
 		_wifi.mode(WIFI_OFF);
-		isRunning = false;
+		_isRunning = false;
 		ESP_LOGI(TAGS, "Webserver stopped.");
 		return true;
 	}
-	if (!isRunning) {		// pass if setup interface wasnt required
+	if (!_isRunning) {		// pass if setup interface wasnt required
 		return true;
 	}
 	return false;

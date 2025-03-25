@@ -16,7 +16,8 @@ BQ25792 charger(PWR_INT, -1);
 
 const char* TAG = "main";
 
-RTC_DATA_ATTR uint32_t wake_cnt = 0;
+RTC_DATA_ATTR uint32_t	wake_cnt = 0;
+RTC_DATA_ATTR uint8_t	refresh_count = 0;
 volatile bool waaaiit;
 
 
@@ -51,17 +52,24 @@ inline void rtc_routine() {
 }
 
 inline void display_refresh() {
+	refresh_count++;
+
 	char secc_1[15];
 	sprintf(secc_1, "%3.1f deg C", temp);
 	char secc_2[15];
 	sprintf(secc_2, "%3.1f %rH", hum);
-	// TODO: display add low battery symbol
-	_display.updateEverything(rtc.getH(), rtc.getM(), 
-								secc_1, secc_2, 
-								"CO", co_ppm, 0, 15,
-								"PM", pm2_5, 0, 100,
-								"NOx", srawNox, 0, 100);
-	_display.deepSleep();
+
+	_display.updateTextbox(secc_1, secc_2, charger.batteryLow(), _setup.isRunning(), _wifi.getID());
+	_display.updateBars("CO" , co_ppm , 0, 80 ,
+						"PM" , pm2_5  , 0, 500,
+						"NOx", srawNox, 0, 100);
+
+	if (refresh_count >= 5) {
+		_display.refresh();
+		refresh_count = 0;
+	}
+					
+	_display.powerOff();
 }
 
 inline void gotosleep() {
@@ -137,7 +145,9 @@ void loop() {
 	else {
 		attachInterrupt(digitalPinToInterrupt(RTC_INT), delay_loop_while_setup_isnt_done_ISR, FALLING);
 		waaaiit = true;
-		// TODO: display add symbol for AP/setup mode
-		while (waaaiit) {}
+		while (waaaiit) {
+			delay(5000);
+			ESP_LOGI(TAG, "honse");
+		}
 	}
 }
