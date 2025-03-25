@@ -394,3 +394,16 @@ uint8_t BQ25792::getTmp() {
     charger_status_0 status;
     return readByte(REG1B_Charger_Status_0);
 }
+
+uint8_t BQ25792::getPercentage() {
+    return constrain(map(getVBAT()*100,700,840,0,100),0,100);
+}
+
+bool BQ25792::batteryLow() {
+    if (isBatteryPresent()) {
+        if (getPercentage() <= 20) {
+            return true;
+        }
+    }
+    return false;
+}

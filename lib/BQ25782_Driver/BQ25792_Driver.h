@@ -180,6 +180,9 @@ public:
     void setCharge(bool EN_CHG);
     uint8_t getTmp();
 
+    uint8_t getPercentage();
+    bool batteryLow();
+
 private:
     void readBytes(uint8_t addr, uint8_t *data, uint8_t size);
     uint16_t readWord(uint8_t addr);

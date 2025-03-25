@@ -80,7 +80,7 @@ inline void mqtt_publish() {
 		_wifi.getID(),
 		_setup.getParam(PARAM_NAME),
 		rtc.now().unixtime(),
-		constrain(map(charger.getVBAT()*100,700,840,0,100),0,100)
+		charger.getPercentage()
 	);
 	Sensor temp_sensor (modules[0].name, temp  , modules[0].unit);
 	Sensor hum_sensor  (modules[1].name, hum   , modules[1].unit);
