@@ -46,17 +46,17 @@ void MyWiFi::writecfg(void) {
  * @return true if connected successfully
  */
 bool MyWiFi::init() {
+	if (isConnected()) {
+		ESP_LOGW(TAG, "WiFi already connected!");
+		return true;
+	}
+	
 	// Read config from NVRAM
 #ifdef FORCE_MODE
 	if (checkCfg()) cfgbuf.mode = FORCE_MODE; // can only force if we got saved info
 #else
 	checkCfg();
 #endif
-
-	if (isConnected()) {
-		ESP_LOGW(TAG, "WiFi already connected!");
-		return true;
-	}
 
 	// Make sure Wifi settings in flash are off so it doesn't start automatically at next boot
 	if (getMode() != WIFI_OFF) {
@@ -104,7 +104,7 @@ bool MyWiFi::init() {
 	unsigned long lastms = millis();
 	while (1) {
 		if (status() == WL_CONNECTED) {
-			uint32_t wifiConnMs = millis();
+			uint32_t wifiConnMs = millis()-lastms;
 			ESP_LOGI(TAG, "Wifi successfully connected in %dms using hostname: %s", wifiConnMs, getHostname());
 			writecfg();
 			break;

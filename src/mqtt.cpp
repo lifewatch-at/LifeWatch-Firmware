@@ -19,6 +19,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
 bool MQTT::connect() {
 	unsigned long lastms = millis();
 
+	if (!_wifi.isConnected()) {
+		return false;
+	}
+
 	while (mdns_init()!=ESP_OK) {
 		if (millis()-lastms >= 1000) {
 			ESP_LOGE(TAG, "Timeout: failed starting mDNS client");

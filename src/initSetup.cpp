@@ -154,6 +154,10 @@ void Setup::init() {
 	ESP_LOGI(TAGS, "Webserver started on %s", _wifi.softAPIP().toString().c_str());
 }
 
+/**
+ * @brief checks wheter setup was finished
+ * @return true if setup was finished or if setup never ran. else false 
+ */
 bool Setup::isDone() {
 	if (isRunning && done) {
 		server.end();

@@ -24,12 +24,10 @@ void delay_loop_while_setup_isnt_done_ISR() {
 	waaaiit = false;
 }
 
-bool wifi_routine() {
-	if (!_wifi.init()) {
-		_setup.init();
-		return false;
+void wifi_routine() {
+	if (!_setup.isRunning()) {
+		if (!_wifi.init()) {_setup.init();}
 	}
-	return true;
 }
 
 inline void rtc_routine() {
@@ -76,7 +74,6 @@ inline void gotosleep() {
 }
 
 inline void mqtt_publish() {
-	if (!wifi_routine()) {return;}
 	if (!mqtt.connect()) {return;}
 	Telemetry tel
 	(	

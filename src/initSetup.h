@@ -22,6 +22,7 @@ public:
     void init();
     String getParam(String param);
     void print();
+    bool isRunning() {return isRunning;}
     bool isDone();
 private:
     const char* password = SETUP_PWD;
