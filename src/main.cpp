@@ -18,6 +18,7 @@ const char* TAG = "main";
 
 RTC_DATA_ATTR uint32_t	wake_cnt = 0;
 RTC_DATA_ATTR uint8_t	refresh_count = 0;
+RTC_DATA_ATTR bool		rtcResync = false;
 volatile bool waaaiit;
 
 
@@ -37,7 +38,8 @@ inline void rtc_routine() {
         return;
     }
 	setenv("TZ", _setup.getParam(PARAM_TZ_OFFSET).c_str(), 1);
-	if (wake_cnt == 0) {
+	if (wake_cnt==0 || rtcResync) {
+		rtcResync = false;
 		wifi_routine();
 		rtc.init();
 	}
@@ -82,6 +84,7 @@ inline void gotosleep() {
 }
 
 inline void mqtt_publish() {
+	wifi_routine();
 	if (!mqtt.connect()) {return;}
 	Telemetry tel
 	(	
@@ -141,7 +144,9 @@ void loop() {
 	print_values();
 	mqtt_publish();
 	
-	if (_setup.isDone()) {gotosleep();}
+	if (_setup.isDone(rtcResync) || !_setup.isRunning()) {
+		gotosleep();
+	}
 	else {
 		attachInterrupt(digitalPinToInterrupt(RTC_INT), delay_loop_while_setup_isnt_done_ISR, FALLING);
 		waaaiit = true;

@@ -23,7 +23,7 @@ public:
     String getParam(String param);
     void print();
     bool isRunning() {return _isRunning;}
-    bool isDone();
+    bool isDone(bool& rtcResync);
 private:
     const char* password = SETUP_PWD;
     IPAddress apip = IPAddress(10,0,0,1);
