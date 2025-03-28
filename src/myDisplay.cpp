@@ -468,13 +468,23 @@ void myDisplay::updateTime(int hour, int min, bool partial) {
     sprintf(time, "%d:%d", hour, min);
   }
 
+#ifdef DISPLAY_750
   display.setPartialWindow(display.width()*0.1, display.height()*0.25*COR /*CORRECTION*/, 
                            display.width()*0.8 , display.height()*0.3*COR);
+#else
+  display.setPartialWindow(0, display.height()*0.2*COR, 
+                           display.width(), display.height()*0.45*COR);
+#endif //DISPLAY_750
 
   display.setRotation(0);
   display.setFont(&bold_95);
   display.setTextColor(GxEPD_BLACK);
+
+#ifdef DISPLAY_750
   display.setTextSize(2);
+#else
+  display.setTextSize(3);
+#endif //DISPLAY_750
 
   int16_t tbx_time, tby_time; uint16_t tbw_time, tbh_time;
   display.getTextBounds(time, 0, 0, &tbx_time, &tby_time, &tbw_time, &tbh_time);

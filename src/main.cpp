@@ -62,9 +62,9 @@ inline void display_refresh() {
 	sprintf(secc_2, "%3.1f %rH", hum);
 
 	_display.updateTextbox(secc_1, secc_2, charger.batteryLow(), _setup.isRunning(), _wifi.getID());
-	_display.updateBars("CO" , co_ppm , 0, 80 ,
-						"PM" , pm2_5  , 0, 500,
-						"NOx", srawNox, 0, 100);
+	_display.updateBars("CO" , co_ppm , 0,   80,
+						"PM" , pm2_5  , 0,  500,
+						"NOx", srawNox, 0,  100);
 
 	if (refresh_count >= 5) {
 		_display.refresh();
@@ -98,7 +98,7 @@ inline void mqtt_publish() {
 	Sensor co2_sensor  (modules[2].name, co2   , modules[2].unit);
 	Sensor co_sensor   (modules[4].name, co_ppm, modules[4].unit);
 	Sensor pm_sensor   (modules[5].name, pm2_5 , modules[5].unit);
-	Sensor tvoc_sensor (modules[6].name, (float)tvoc  , modules[6].unit);
+	Sensor tvoc_sensor (modules[6].name, (float)tvoc   , modules[6].unit);
 	Sensor nox_sensor  (modules[8].name, (float)srawNox, modules[8].unit);
 	Sensor noise_sensor(modules[9].name, noise_db, modules[9].unit);
 	Device device;
@@ -116,14 +116,14 @@ inline void mqtt_publish() {
 }
 
 void print_values(void) {
-	ESP_LOGI(TAG, "\ntemp =  %5.1f deg C", temp);
-	ESP_LOGI(TAG, "hum = \t%5.1f %rH", hum);
-	ESP_LOGI(TAG, "PM = \t%5.1f ppm", pm2_5);
-	ESP_LOGI(TAG, "CO = \t%5.1f ppm", co_ppm);
-	ESP_LOGI(TAG, "noise = \t%d dB", noise_db);
-	ESP_LOGI(TAG, "TVOC = \t%d ppb", tvoc);
-	ESP_LOGI(TAG, "CO2 = \t%5.1f µg/m^3", co2);
-	ESP_LOGI(TAG, "NOx = \t%d ppb\n", srawNox);
+	ESP_LOGI(TAG, "\ntemp = %5.1f  deg C",     temp);
+	ESP_LOGI(TAG, "hum    = %5.1f    %rH",      hum);
+	ESP_LOGI(TAG, "PM     = %5.1f    ppm",    pm2_5);
+	ESP_LOGI(TAG, "CO     = %5.1f    ppm",   co_ppm);
+	ESP_LOGI(TAG, "noise  = %5d       dB", noise_db);
+	ESP_LOGI(TAG, "TVOC   = %5d      ppb",     tvoc);
+	ESP_LOGI(TAG, "CO2    = %5.1f µg/m^3",      co2);
+	ESP_LOGI(TAG, "NOx    = %5d    ppb\n",  srawNox);
 }
 
 void setup() {
