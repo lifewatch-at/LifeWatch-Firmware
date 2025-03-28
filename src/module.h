@@ -85,13 +85,13 @@ const module modules[] = {
 
 
 bool adrTest(byte adr) {
-  byte error;
+	byte error;
 
-  Wire1.beginTransmission(adr);
-  error = Wire1.endTransmission();
+	Wire1.beginTransmission(adr);
+	error = Wire1.endTransmission();
 
-  if (error) return false;
-  return true; 
+	if (error) return false;
+	return true; 
 }
 
 void read_modules(Device& device) {
@@ -119,7 +119,7 @@ void noise_read(Sensor& sensor) {
 }
 
 
-float hum = 66.6;
+float hum = 0;
 
 void temp_read(Sensor& sensor) {
 	float temp = 66.6;
@@ -269,7 +269,7 @@ void co_read(Sensor& sensor) {
 
 void pm_read(Sensor& sensor) {
 	if (!gcja5.begin(Wire1)) {
-		ESP_LOGE(TAGM, "ERROR - pm_read()");
+		ESP_LOGE(TAGM, "ERROR: PM");
 	}
 	sensor.fill(PM25_NAME, gcja5.getPM2_5(), PM25_UNIT);
 }
@@ -287,25 +287,25 @@ void tvoc_read(Sensor& sensor) {
 	Wire1.requestFrom(0x1A, 4);
 
 	if (Wire1.available() < 4) {
-		Serial.println("I2C Read Error! - TVOC");
+		ESP_LOGE(TAGM, "ERROR: TVOC");
 	}
 
 	uint16_t gasRaw   = (Wire1.read() << 8) | Wire1.read();   // Gas Resistance
 	// float gasKOhms = gasRaw / 1000.0;  // laut Datenblatt Umrechnung in kOhm
 	uint16_t tvocRaw  = (Wire1.read() << 8) | Wire1.read();  // TVOC
 
+	Wire1.setClock(400000);
+
 	if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
-		Wire1.setClock(400000);
+		sensor.fill(TVOC_NAME, 0, TVOC_UNIT);
 		return;
 	}
-
 	sensor.fill(TVOC_NAME, tvocRaw, TVOC_UNIT);
-	Wire1.setClock(400000);
 }
 
 
 void light_read(Sensor& sensor) {
-
+	sensor.fill(LIGHT_NAME, 0, LIGHT_UNIT);
 }
 
 
@@ -332,7 +332,8 @@ void nox_read(Sensor& sensor) {
 	error = sgp41.measureRawSignals(defaultRh, defaultT, srawVoc, srawNox);
 
 	if (error) {
-		Serial.println("\nERROR - nox_read()");
+		ESP_LOGE(TAGM, "ERROR: NOx");
+		sensor.fill(NOX_NAME, 0, NOX_UNIT);
 		return;
 	}
 	sensor.fill(NOX_NAME, srawNox/1000, NOX_UNIT);

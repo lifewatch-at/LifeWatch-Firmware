@@ -11,14 +11,15 @@
 #include "BQ25792_Driver.h"
 
 
+#define PARTIAL_REFRESHS 5
+
 myDisplay _display;
 BQ25792 charger(PWR_INT, -1);
-Device device;
 
 const char* TAG = "main";
 
 RTC_DATA_ATTR uint32_t	wake_cnt = 0;
-RTC_DATA_ATTR uint8_t	refresh_count = 0;
+RTC_DATA_ATTR uint8_t	refresh_count = PARTIAL_REFRESHS;
 RTC_DATA_ATTR bool		rtcResync = false;
 volatile bool waaaiit;
 
@@ -54,20 +55,20 @@ inline void rtc_routine() {
 	_display.updateTime(rtc.getH(), rtc.getM(), true);
 }
 
-inline void display_refresh() {
+inline void display_refresh(Device& device) {
 	refresh_count++;
 
 	char secc_1[15];
-	sprintf(secc_1, "%3.1f deg C", temp);
+	sprintf(secc_1, "%3.1f deg C", device.getValueof(TEMP_NAME));
 	char secc_2[15];
-	sprintf(secc_2, "%3.1f %rH", hum);
+	sprintf(secc_2, "%3.1f %rH", device.getValueof(HUM_NAME));
 
 	_display.updateTextbox(secc_1, secc_2, charger.batteryLow(), _setup.isRunning(), _wifi.getID());
-	_display.updateBars("CO" , co_ppm , 0, 80 ,
-						"PM" , pm2_5  , 0, 500,
-						"NOx", srawNox, 0, 100);
+	_display.updateBars("CO" , device.getValueof(CO_NAME) , 0,   80,
+						"CO2", device.getValueof(CO2_NAME), 0, 1000,
+						"NOx", device.getValueof(NOX_NAME), 0,  100);
 
-	if (refresh_count >= 5) {
+	if (refresh_count >= PARTIAL_REFRESHS) {
 		_display.refresh();
 		refresh_count = 0;
 	}
@@ -84,7 +85,7 @@ inline void gotosleep() {
 	ESP_LOGE(TAG, "This shouldn't get printed");
 }
 
-inline void mqtt_publish() {
+inline void mqtt_publish(Device& device) {
 	wifi_routine();
 	if (!mqtt.connect()) {return;}
 	Telemetry tel
@@ -99,36 +100,23 @@ inline void mqtt_publish() {
 	mqtt.loop();
 }
 
-/*
-void print_values(void) {
-	ESP_LOGI(TAG, "\ntemp =  %5.1f deg C", temp);
-	ESP_LOGI(TAG, "hum = \t%5.1f %rH", hum);
-	ESP_LOGI(TAG, "PM = \t%5.1f ppm", pm2_5);
-	ESP_LOGI(TAG, "CO = \t%5.1f ppm", co_ppm);
-	ESP_LOGI(TAG, "noise = \t%d dB", noise_db);
-	ESP_LOGI(TAG, "TVOC = \t%d ppb", tvoc);
-	ESP_LOGI(TAG, "CO2 = \t%5.1f µg/m^3", co2);
-	ESP_LOGI(TAG, "NOx = \t%d ppb\n", srawNox);
-}
-*/
 
 void setup() {
 	Serial.setDebugOutput(true);
 	Serial.begin(115200);
 	Wire.begin(MB_SDA, MB_SCL, 400000);
 	Wire1.begin(CB_SDA, CB_SCL, 400000);
-	delay(2000);												// temporary delay to make debugging easier
 	ESP_LOGI(TAG, "setup started. wake count: %d", wake_cnt);
 	ESP_LOGI(TAG, "ID: %s", _wifi.getID());
 	_display.init(wake_cnt==0);
 }
 
 void loop() {
+	Device device;
 	rtc_routine();
 	read_modules(device);
-	display_refresh();
-//	print_values();
-	mqtt_publish();
+	display_refresh(device);
+	mqtt_publish(device);
 	
 	if (_setup.isDone(rtcResync) || !_setup.isRunning()) {
 		gotosleep();
