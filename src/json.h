@@ -21,8 +21,15 @@ private:
 
 class Sensor {
 public:
+    Sensor() {};
     Sensor(String name, float value, String unit) : name(name), value(value), unit(unit) {};
-
+    void fill(String name, float value, String unit) {
+        this->name = name;
+        this->value = value;
+        this->unit = unit; 
+    }
+    bool hasName(const char* _name) { if (name==_name) {return true;} return false;}
+    float getValue() {return value;}
     JsonDocument toJSON();
 private:
     String name;
@@ -33,9 +40,9 @@ private:
 class Device {
 public:
     JsonDocument toJSON();
-    void add(Sensor* sensor);
+    void add(Sensor sensor);
+    float getValueof(const char* sensor);
 
     Telemetry* telemetry;
-    std::vector<Sensor*> _sensors;
+    std::vector<Sensor> _sensors;
 };
-
