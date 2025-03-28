@@ -35,7 +35,7 @@ bool MQTT::connect() {
 	while (1) {
 		srvip = MDNS.queryHost(MQTT_HOST);
 		if (srvip != IPAddress(0,0,0,0)) {
-			ESP_LOGI(TAG, "Got IP: %s", srvip.toString());
+			ESP_LOGI(TAG, "Got IP: %s", srvip.toString().c_str());
 			break;
 		}
 

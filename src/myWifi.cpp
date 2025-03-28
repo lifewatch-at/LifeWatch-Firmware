@@ -129,6 +129,11 @@ time_t MyWiFi::getTime() {
 	time_t now;
 	struct tm timeinfo;
 
+	if (!isConnected()) {
+		ESP_LOGE(TAG, "Cannot sync time without being connected to wifi");
+		return(0);
+	}
+
 	ESP_LOGI(TAG, "Retrieving time...");
 
 	configTzTime(_setup.getParam(PARAM_TZ_OFFSET).c_str(), NTP_SERVER_0, NTP_SERVER_1, NTP_SERVER_2);
