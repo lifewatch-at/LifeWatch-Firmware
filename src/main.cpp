@@ -65,8 +65,8 @@ inline void display_refresh(Device& device) {
 
 	_display.updateTextbox(secc_1, secc_2, charger.batteryLow(), _setup.isRunning(), _wifi.getID());
 	_display.updateBars("CO" , device.getValueof(CO_NAME) , 0,   80,
-						"CO2", device.getValueof(CO2_NAME), 0, 1000,
-						"NOx", device.getValueof(NOX_NAME), 0,  100);
+						"CO2", device.getValueof(CO2_NAME), 0, 2000,
+						"PM", device.getValueof(PM25_NAME), 0, 1500);
 
 	if (refresh_count >= PARTIAL_REFRESHS) {
 		_display.refresh();

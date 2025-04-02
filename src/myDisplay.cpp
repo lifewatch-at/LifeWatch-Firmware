@@ -454,22 +454,21 @@ void myDisplay::updateSpace_5(const char *name, const float wert, const float mi
 
 void myDisplay::updateTime(int hour, int min, bool partial) {
   char time[6];
-
-  if (hour < 10 && min >= 10) {
-    sprintf(time, "0%d:%d", hour, min);
+  if (hour < 10 && min >= 10) { 
+    sprintf(time, "0%d:%d", hour, min); 
   }
-  else if (hour >= 10 && min < 10) {
-    sprintf(time, "%d:0%d", hour, min);
+  else if (hour >= 10 && min < 10) { 
+    sprintf(time, "%d:0%d", hour, min); 
   }
-  else if (hour < 10 && min < 10) {
-    sprintf(time, "0%d:0%d", hour, min);
+  else if (hour < 10 && min < 10) { 
+    sprintf(time, "0%d:0%d", hour, min); 
   }
-  else {
-    sprintf(time, "%d:%d", hour, min);
+  else { 
+    sprintf(time, "%d:%d", hour, min); 
   }
 
 #ifdef DISPLAY_750
-  display.setPartialWindow(display.width()*0.1, display.height()*0.25*COR /*CORRECTION*/, 
+  display.setPartialWindow(display.width()*0.1, display.height()*0.25*COR, 
                            display.width()*0.8 , display.height()*0.3*COR);
 #else
   display.setPartialWindow(0, display.height()*0.2*COR, 

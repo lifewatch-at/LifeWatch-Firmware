@@ -35,11 +35,4 @@ public:
 private:
   uint16_t map(uint16_t x, uint16_t IN_min, uint16_t IN_max, uint16_t OUT_min, uint16_t OUT_max);
   void printBox(bool isBlack, uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool partial);
-  
-  char _cTemp[7]  = "28.3 C";
-  char _cHum [4]  = "36%";
-  char mhTime[6]  = "12:45";
-  char CO2   [8]  = "CO2";
-  char TVOC  [5]  = "TVOC";
-  char CO    [3]  = "CO";
 };
