@@ -156,14 +156,14 @@ void Setup::init() {
 
 /**
  * @brief checks wheter setup was finished
- * @return true if setup was finished or if setup never ran. else false 
+ * @return true if setup was finished. else false 
  */
-bool Setup::isDone(bool& rtcResync) {
+bool Setup::isDone(bool& isDone) {
 	if (_isRunning && done) {
 		server.end();
 		_wifi.mode(WIFI_OFF);
 		_isRunning = false;
-		rtcResync = true;
+		isDone = true;
 		ESP_LOGI(TAGS, "Webserver stopped.");
 		return true;
 	}
