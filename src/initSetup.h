@@ -20,10 +20,9 @@
 class Setup {
 public:
     void init();
-    String getParam(String param);
-    void print();
     bool isRunning() {return _isRunning;}
-    bool isDone(bool& rtcResync);
+    bool isDone(bool& isDone);
+    String getParam(String param);
 private:
     const char* password = SETUP_PWD;
     IPAddress apip = IPAddress(10,0,0,1);
