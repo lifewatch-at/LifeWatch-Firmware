@@ -21,6 +21,18 @@ const char* TAGM = "modules";
 #define NOISE_ADDRESS	0x48
 #define SPKR_ADDRESS	0x4c
 
+// module id's
+#define TEMP_ID		"temp"
+#define HUM_ID		"hum"
+#define PM25_ID		"pm"
+#define CO_ID		"co"
+#define CO2_ID		"co2"
+#define SPKR_ID		"spkr"
+#define TVOC_ID		"tvoc"
+#define LIGHT_ID	"light"
+#define NOX_ID		"nox"
+#define NOISE_ID	"noise"
+
 // module names
 #define TEMP_NAME	"Temperature"
 #define HUM_NAME	"Humidity"
@@ -114,7 +126,7 @@ void noise_read(Sensor& sensor) {
 	Wire1.endTransmission();
 	Wire1.requestFrom(NOISE_ADDRESS, 1);
 	delay(50);
-	sensor.fill(NOISE_NAME, (int)Wire1.read(), NOISE_UNIT);
+	sensor.fill(NOISE_ID, NOISE_NAME, (int)Wire1.read(), NOISE_UNIT);
 	Wire.setClock(400000);
 }
 
@@ -138,7 +150,7 @@ void temp_read(Sensor& sensor) {
 		hum  = 100 * ((float)rawHum / 65535.0);
 	}
 	Wire1.endTransmission();
-	sensor.fill(TEMP_NAME, temp, TEMP_UNIT);
+	sensor.fill(TEMP_ID, TEMP_NAME, temp, TEMP_UNIT);
 }
 
 
@@ -158,7 +170,7 @@ void hum_read(Sensor& sensor) {
 
 	hum  = humidity.relative_humidity;
 	*/
-	sensor.fill(HUM_NAME, hum, HUM_UNIT);
+	sensor.fill(HUM_ID, HUM_NAME, hum, HUM_UNIT);
 }
 
 
@@ -198,7 +210,7 @@ void co2_read(Sensor& sensor) {
 		float _temperature = -45.0 + 175.0 * ((float)temperature_raw / 65535.0);
 		float _humidity = 100.0 * ((float)humidity_raw / 65535.0);
 
-		sensor.fill(CO2_NAME, co2_raw, CO2_UNIT);
+		sensor.fill(CO2_ID, CO2_NAME, co2_raw, CO2_UNIT);
 	} else {
 		ESP_LOGW(TAGM, "Failed to read data from SCD41.");
 	}
@@ -206,7 +218,7 @@ void co2_read(Sensor& sensor) {
 
 
 void speaker_read(Sensor& sensor) {
-	sensor.fill(SPKR_NAME, 0, SPKR_UNIT);
+	sensor.fill(SPKR_ID, SPKR_NAME, 0, SPKR_UNIT);
 }
 
 
@@ -262,7 +274,7 @@ void co_read(Sensor& sensor) {
 	float voltage = adc * ADC_LSB_V;
 	float current_nA = ((voltage / RTIA_OHMS) / RL_OHMS) * 1e9;
 	float co_ppm = (current_nA - ZERO_CURRENT_NA) / SENSITIVITY_NA_PPM;
-	sensor.fill(CO_NAME, co_ppm, CO_UNIT);
+	sensor.fill(CO_ID, CO_NAME, co_ppm, CO_UNIT);
 	Wire1.setClock(400000);
 }
 
@@ -271,7 +283,7 @@ void pm_read(Sensor& sensor) {
 	if (!gcja5.begin(Wire1)) {
 		ESP_LOGE(TAGM, "ERROR: PM");
 	}
-	sensor.fill(PM25_NAME, gcja5.getPM2_5(), PM25_UNIT);
+	sensor.fill(PM25_ID, PM25_NAME, gcja5.getPM2_5(), PM25_UNIT);
 }
 
 
@@ -297,15 +309,15 @@ void tvoc_read(Sensor& sensor) {
 	Wire1.setClock(400000);
 
 	if (tvocRaw == 0xFFFF || tvocRaw > 3000) {
-		sensor.fill(TVOC_NAME, 0, TVOC_UNIT);
+		sensor.fill(TVOC_ID, TVOC_NAME, 0, TVOC_UNIT);
 		return;
 	}
-	sensor.fill(TVOC_NAME, tvocRaw, TVOC_UNIT);
+	sensor.fill(TVOC_ID, TVOC_NAME, tvocRaw, TVOC_UNIT);
 }
 
 
 void light_read(Sensor& sensor) {
-	sensor.fill(LIGHT_NAME, 0, LIGHT_UNIT);
+	sensor.fill(LIGHT_ID, LIGHT_NAME, 0, LIGHT_UNIT);
 }
 
 
@@ -333,8 +345,8 @@ void nox_read(Sensor& sensor) {
 
 	if (error) {
 		ESP_LOGE(TAGM, "ERROR: NOx");
-		sensor.fill(NOX_NAME, 0, NOX_UNIT);
+		sensor.fill(NOX_ID, NOX_NAME, 0, NOX_UNIT);
 		return;
 	}
-	sensor.fill(NOX_NAME, srawNox/1000, NOX_UNIT);
+	sensor.fill(NOX_ID, NOX_NAME, srawNox/1000, NOX_UNIT);
 }
