@@ -163,16 +163,16 @@ void hum_read(Sensor& sensor) {
 
 
 // Command definitions (based on datasheet)
-#define CMD_START_PERIODIC_MEASUREMENT  0x21B1
-#define CMD_READ_MEASUREMENT            0xEC05
-#define CMD_STOP_PERIODIC_MEASUREMENT   0x3F86
+#define CMD_START_MEASUREMENT 0x21B1
+#define CMD_READ_MEASUREMENT  0xEC05
+#define CMD_STOP_MEASUREMENT  0x3F86
 
 
 void co2_read(Sensor& sensor) {
-	// Start periodic measurement									// ? why periodic measurement? use single shot instead
+	// Start measurement									// ? why periodic measurement? use single shot instead
 	Wire1.beginTransmission(SCD41_ADDRESS);
-	Wire1.write(CMD_START_PERIODIC_MEASUREMENT >> 8);   // Send MSB
-	Wire1.write(CMD_START_PERIODIC_MEASUREMENT & 0xFF); // Send LSB
+	Wire1.write(CMD_START_MEASUREMENT >> 8);   // Send MSB
+	Wire1.write(CMD_START_MEASUREMENT & 0xFF); // Send LSB
 	Wire1.endTransmission();
 
 	// Read measurement data
