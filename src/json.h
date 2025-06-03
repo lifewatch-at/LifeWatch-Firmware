@@ -22,8 +22,9 @@ private:
 class Sensor {
 public:
     Sensor() {};
-    Sensor(String name, float value, String unit) : name(name), value(value), unit(unit) {};
-    void fill(String name, float value, String unit) {
+    Sensor(String id, String name, float value, String unit) : id(id), name(name), value(value), unit(unit) {};
+    void fill(String id, String name, float value, String unit) {
+        this->id = id;
         this->name = name;
         this->value = value;
         this->unit = unit; 
@@ -32,6 +33,7 @@ public:
     float getValue() {return value;}
     JsonDocument toJSON();
 private:
+    String id;
     String name;
     float value;
     String unit;

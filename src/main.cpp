@@ -85,7 +85,7 @@ inline void gotosleep() {
 	ESP_LOGE(TAG, "This shouldn't get printed");
 }
 
-inline void mqtt_publish(Device& device) {
+inline void mqtt_routine(Device& device) {
 	wifi_routine();
 	if (!mqtt.connect()) {return;}
 	Telemetry tel
@@ -116,7 +116,7 @@ void loop() {
 	rtc_routine();
 	read_modules(device);
 	display_refresh(device);
-	mqtt_publish(device);
+	mqtt_routine(device);
 	
 	if (_setup.isDone(rtcResync) || !_setup.isRunning()) {
 		gotosleep();
@@ -126,7 +126,7 @@ void loop() {
 		waaaiit = true;
 		while (waaaiit) {
 			delay(5000);
-			ESP_LOGI(TAG, "honse");
+			ESP_LOGI(TAG, "loop");
 		}
 	}
 }

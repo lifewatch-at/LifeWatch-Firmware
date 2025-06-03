@@ -3,6 +3,7 @@
 
 JsonDocument Sensor::toJSON() {
     JsonDocument doc;
+    doc["id"] = id;
     doc["name"] = name;
     doc["value"] = value;
     doc["unit"] = unit;
